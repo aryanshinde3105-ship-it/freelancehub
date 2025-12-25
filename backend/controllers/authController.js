@@ -25,7 +25,7 @@ const registerUser = async (req, res) => {
       role: role || 'client',
     });
 
-    const token = generateToken(user);
+    const token = generateToken(user._id); // ✅ FIX
 
     res.status(201).json({
       _id: user._id,
@@ -35,7 +35,7 @@ const registerUser = async (req, res) => {
       token,
     });
   } catch (err) {
-    console.error('Register error:', err.message);
+    console.error('Register error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 };
@@ -59,7 +59,7 @@ const loginUser = async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    const token = generateToken(user);
+    const token = generateToken(user._id); // ✅ FIX
 
     res.json({
       _id: user._id,
@@ -69,7 +69,7 @@ const loginUser = async (req, res) => {
       token,
     });
   } catch (err) {
-    console.error('Login error:', err.message);
+    console.error('Login error:', err);
     res.status(500).json({ message: 'Server error' });
   }
 };
