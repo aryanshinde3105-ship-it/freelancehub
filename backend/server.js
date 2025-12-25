@@ -8,11 +8,6 @@ const userRoutes = require('./routes/userRoutes');
 dotenv.config();
 
 const app = express();
-
-/* =========================
-   Middleware
-========================= */
-
 app.use(
   cors({
     origin: true, // ✅ reflect request origin
@@ -20,6 +15,7 @@ app.use(
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   })
 );
+app.options('*', cors());
 
 
 
