@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
+import { loginUser } from '../auth';
 
 function Register() {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ function Register() {
   const [message, setMessage] = useState('');
 
   const handleChange = (e) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [e.target.name]: e.target.value,
     }));
@@ -30,8 +31,8 @@ function Register() {
     try {
       const res = await api.post('/api/auth/register', formData);
 
-      // store token
-      localStorage.setItem('token', res.data.token);
+      // ✅ STORE TOKEN + USER TOGETHER (FIX)
+      loginUser(res.data);
 
       // ✅ client-side navigation (no reload)
       navigate('/dashboard');
@@ -80,7 +81,11 @@ function Register() {
             required
           />
 
-          <select name="role" value={formData.role} onChange={handleChange}>
+          <select
+            name="role"
+            value={formData.role}
+            onChange={handleChange}
+          >
             <option value="client">Client</option>
             <option value="freelancer">Freelancer</option>
           </select>
