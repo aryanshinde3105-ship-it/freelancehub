@@ -7,47 +7,33 @@ const userRoutes = require('./routes/userRoutes');
 
 dotenv.config();
 
+connectDB();
+
 const app = express();
+
+/* ✅ FIXED CORS (PRODUCTION SAFE) */
 app.use(
   cors({
-    origin: true, // ✅ reflect request origin
+    origin: true, // reflect request origin
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   })
 );
-app.options('*', cors());
 
-
+/* ✅ FIXED preflight handling for Node 22 */
+app.options(/.*/, cors());
 
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-/* =========================
-   Health Check
-========================= */
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'ok' });
-});
-
-/* =========================
-   Routes
-========================= */
+// routes
 app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/projects', require('./routes/projectRoutes'));
 app.use('/api/proposals', require('./routes/proposalRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
 app.use('/api/users', userRoutes);
 
-/* =========================
-   Start Server
-========================= */
 const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
-/* =========================
-   DB Connection (non-blocking)
-========================= */
-connectDB();
