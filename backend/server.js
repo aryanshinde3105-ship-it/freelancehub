@@ -16,13 +16,16 @@ const app = express();
 app.use(
   cors({
     origin: [
-      'http://localhost:3000', // dev
-      'http://localhost:5173', // vite (if used)
-      process.env.FRONTEND_URL, // vercel
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'https://freelancehub-pi.vercel.app',
+      process.env.FRONTEND_URL,
     ],
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     credentials: true,
   })
 );
+
 
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
