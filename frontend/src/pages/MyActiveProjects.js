@@ -56,7 +56,6 @@ function MyActiveProjects() {
 
       alert('File uploaded successfully');
 
-      // clear file after upload
       setSelectedFiles((prev) => {
         const updated = { ...prev };
         delete updated[projectId];
@@ -74,7 +73,7 @@ function MyActiveProjects() {
     <div className="app-container">
       <h2>My Active Projects</h2>
 
-      {/* ✅ EMPTY STATE */}
+      {/* EMPTY STATE */}
       {projects.length === 0 ? (
         <div className="empty-state">
           <h3>No active projects</h3>
@@ -109,10 +108,37 @@ function MyActiveProjects() {
                     ⏳ Waiting for client approval
                   </p>
                 )}
+
+                {/* 🔴 NEW: Rejection reason visible to freelancer */}
+                {project.rejectionReason && (
+                  <div
+                    style={{
+                      marginTop: '0.75rem',
+                      padding: '0.75rem',
+                      borderRadius: '6px',
+                      background: '#fff7ed',
+                      border: '1px solid #fed7aa',
+                      color: '#9a3412',
+                      fontSize: '0.9rem',
+                    }}
+                  >
+                    <strong>Client feedback:</strong>
+                    <div>{project.rejectionReason}</div>
+                  </div>
+                )}
               </div>
 
               {/* ACTIONS */}
               <div className="project-card-actions">
+                {(project.status === 'in-progress' ||
+                  project.status === 'pending-approval') && (
+                  <Link to={`/chat/${project._id}`}>
+                    <button className="btn btn-secondary">
+                      Open Chat
+                    </button>
+                  </Link>
+                )}
+
                 {project.status === 'in-progress' && (
                   <>
                     <input

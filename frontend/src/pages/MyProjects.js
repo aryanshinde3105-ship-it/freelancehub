@@ -8,29 +8,37 @@ function MyProjects() {
   const [rejectReason, setRejectReason] = useState({});
   const token = localStorage.getItem('token');
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const res = await api.get('/api/projects/my', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setProjects(res.data);
-      } catch (err) {
-        console.error(err);
-        alert('Unable to load projects.');
-      }
-    };
+  // ✅ extracted so we can reuse it
+  const fetchProjects = async () => {
+    try {
+      const res = await api.get('/api/projects/my', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setProjects(res.data);
+    } catch (err) {
+      console.error(err);
+      alert('Unable to load projects.');
+    }
+  };
 
+  useEffect(() => {
     fetchProjects();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const approveProject = async (projectId) => {
-    await api.patch(
-      `/api/projects/${projectId}/approve`,
-      {},
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-    window.location.reload();
+    try {
+      await api.patch(
+        `/api/projects/${projectId}/approve`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      // ✅ refresh state instead of reloading page
+      await fetchProjects();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to approve project');
+    }
   };
 
   const rejectProject = async (projectId) => {
@@ -39,21 +47,34 @@ function MyProjects() {
       return;
     }
 
-    await api.patch(
-      `/api/projects/${projectId}/reject`,
-      { reason: rejectReason[projectId] },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    try {
+      await api.patch(
+        `/api/projects/${projectId}/reject`,
+        { reason: rejectReason[projectId] },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-    alert('Project rejected');
-    window.location.reload();
+      alert('Project rejected');
+
+      // clear rejection input for that project
+      setRejectReason((prev) => {
+        const updated = { ...prev };
+        delete updated[projectId];
+        return updated;
+      });
+
+      // ✅ refresh state instead of reloading page
+      await fetchProjects();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to reject project');
+    }
   };
 
   return (
     <div className="app-container">
       <h2>My Projects</h2>
 
-      {/* ✅ EMPTY STATE */}
+      {/* EMPTY STATE */}
       {projects.length === 0 ? (
         <div className="empty-state">
           <h3>No projects yet</h3>
@@ -90,7 +111,7 @@ function MyProjects() {
                       {project.deliverables.map((file, i) => (
                         <li key={i}>
                           <a
-                            href={`http://localhost:5000/uploads/${file.filename}`}
+                            href={`${process.env.REACT_APP_API_URL}/uploads/${file.filename}`}
                             target="_blank"
                             rel="noreferrer"
                           >
@@ -105,6 +126,14 @@ function MyProjects() {
 
               {/* ACTIONS */}
               <div className="project-card-actions">
+                {project.status === 'open' && (
+                  <Link to={`/project/${project._id}/proposals`}>
+                    <button className="btn btn-secondary">
+                      View Proposals
+                    </button>
+                  </Link>
+                )}
+
                 {project.status === 'pending-approval' && (
                   <>
                     <button
