@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../api';
-import ProjectProgress from './ProjectProgress';
+import ProjectProgress from '../components/ProjectProgress';
 
 function MyActiveProjects() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // ✅ FIX: store selected file per projectId
+  // store selected file per projectId
   const [selectedFiles, setSelectedFiles] = useState({});
 
   const token = localStorage.getItem('token');
@@ -29,7 +30,7 @@ function MyActiveProjects() {
   }, [token]);
 
   const handleFileChange = (projectId, file) => {
-    setSelectedFiles(prev => ({
+    setSelectedFiles((prev) => ({
       ...prev,
       [projectId]: file,
     }));
@@ -55,8 +56,8 @@ function MyActiveProjects() {
 
       alert('File uploaded successfully');
 
-      // optional: clear file after upload
-      setSelectedFiles(prev => {
+      // clear file after upload
+      setSelectedFiles((prev) => {
         const updated = { ...prev };
         delete updated[projectId];
         return updated;
@@ -73,37 +74,69 @@ function MyActiveProjects() {
     <div className="app-container">
       <h2>My Active Projects</h2>
 
-      {projects.length === 0 && <p>No active projects.</p>}
-
-      {projects.map(project => (
-        <div key={project._id} className="card">
-          <h3>{project.title}</h3>
-          <p>Status: {project.status}</p>
-
-          <ProjectProgress status={project.status} />
-
-          {project.status === 'in-progress' && (
-            <>
-              <input
-                type="file"
-                onChange={(e) =>
-                  handleFileChange(project._id, e.target.files[0])
-                }
-              />
-              <button
-                className="btn btn-primary"
-                onClick={() => uploadFile(project._id)}
-              >
-                Upload Work
-              </button>
-            </>
-          )}
-
-          {project.status === 'pending-approval' && (
-            <p>⏳ Waiting for client approval</p>
-          )}
+      {/* ✅ EMPTY STATE */}
+      {projects.length === 0 ? (
+        <div className="empty-state">
+          <h3>No active projects</h3>
+          <p>You don’t have any ongoing work right now.</p>
+          <Link to="/browse-projects">
+            <button className="btn btn-primary">
+              Browse projects
+            </button>
+          </Link>
         </div>
-      ))}
+      ) : (
+        <div className="card-grid">
+          {projects.map((project) => (
+            <div key={project._id} className="card project-card">
+              {/* HEADER */}
+              <div className="project-card-header">
+                <h3 className="project-card-title">
+                  {project.title}
+                </h3>
+
+                <div className={`badge badge-${project.status}`}>
+                  {project.status.replace('-', ' ')}
+                </div>
+              </div>
+
+              {/* BODY */}
+              <div className="project-card-body">
+                <ProjectProgress status={project.status} />
+
+                {project.status === 'pending-approval' && (
+                  <p className="mt-1">
+                    ⏳ Waiting for client approval
+                  </p>
+                )}
+              </div>
+
+              {/* ACTIONS */}
+              <div className="project-card-actions">
+                {project.status === 'in-progress' && (
+                  <>
+                    <input
+                      type="file"
+                      onChange={(e) =>
+                        handleFileChange(
+                          project._id,
+                          e.target.files[0]
+                        )
+                      }
+                    />
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => uploadFile(project._id)}
+                    >
+                      Upload Work
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

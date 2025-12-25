@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import api from '../api';
 import { getCurrentUser } from '../auth';
@@ -12,37 +12,53 @@ function ProjectChat() {
   const user = getCurrentUser();
   const token = localStorage.getItem('token');
 
+  const chatEndRef = useRef(null);
+  const intervalRef = useRef(null);
+
+  const fetchChat = async () => {
+    try {
+      const res = await api.get(`/api/chat/${projectId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMessages(res.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchChat = async () => {
-      try {
-        const res = await api.get(`/api/chat/${projectId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setMessages(res.data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchChat();
-    const interval = setInterval(fetchChat, 3000);
 
-    return () => clearInterval(interval);
+    intervalRef.current = setInterval(fetchChat, 8000);
+
+    return () => {
+      clearInterval(intervalRef.current);
+    };
   }, [projectId, token]);
+
+  // ✅ auto-scroll on new messages
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
   const sendMessage = async (e) => {
     e.preventDefault();
     if (!text.trim()) return;
 
-    await api.post(
-      `/api/chat/${projectId}`,
-      { text },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+    try {
+      await api.post(
+        `/api/chat/${projectId}`,
+        { text },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-    setText('');
+      setText('');
+      fetchChat();
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   if (loading) return <p>Loading chat...</p>;
@@ -51,19 +67,23 @@ function ProjectChat() {
     <div className="app-container">
       <h2>Project Chat</h2>
 
-      <div className="card" style={{ height: '400px', overflowY: 'auto' }}>
-        {messages.map((msg) => (
-          <div
-            key={msg._id}
-            style={{
-              marginBottom: '0.5rem',
-              textAlign: msg.senderId._id === user.id ? 'right' : 'left',
-            }}
-          >
-            <b>{msg.senderId.name}</b>
-            <div>{msg.text}</div>
-          </div>
-        ))}
+      <div className="chat-container">
+        {messages.map((msg) => {
+          const isMe = msg.senderId._id === user.id;
+
+          return (
+            <div
+              key={msg._id}
+              className={`chat-message ${isMe ? 'me' : 'other'}`}
+            >
+              {!isMe && (
+                <div className="chat-sender">{msg.senderId.name}</div>
+              )}
+              {msg.text}
+            </div>
+          );
+        })}
+        <div ref={chatEndRef} />
       </div>
 
       <form
@@ -74,7 +94,6 @@ function ProjectChat() {
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Type a message..."
-          style={{ flex: 1 }}
         />
         <button className="btn btn-primary" type="submit">
           Send

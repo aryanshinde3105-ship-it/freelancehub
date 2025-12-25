@@ -7,7 +7,7 @@ function BrowseProjects() {
   const [projects, setProjects] = useState([]);
   const [appliedProjectIds, setAppliedProjectIds] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
   const user = getCurrentUser();
   const token = localStorage.getItem('token');
@@ -23,16 +23,14 @@ function BrowseProjects() {
             headers: { Authorization: `Bearer ${token}` },
           });
 
-          const appliedIds = proposalsRes.data.map(p => p.projectId._id);
+          const appliedIds = proposalsRes.data.map(
+            (p) => p.projectId._id
+          );
           setAppliedProjectIds(appliedIds);
-        }
-
-        if (projectsRes.data.length === 0) {
-          setMessage('No open projects available.');
         }
       } catch (err) {
         console.error(err);
-        setMessage('Unable to load projects.');
+        setError('Unable to load projects.');
       } finally {
         setLoading(false);
       }
@@ -44,37 +42,78 @@ function BrowseProjects() {
   if (loading) return <p>Loading projects...</p>;
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+    <div className="app-container">
       <h2>Browse Projects</h2>
-      {message && <p>{message}</p>}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-        {projects.map(project => {
-          const alreadyApplied = appliedProjectIds.includes(project._id);
+      {/* ❌ real error */}
+      {error && <p>{error}</p>}
 
-          return (
-            <div
-              key={project._id}
-             className="app-container">
-              <h3 className="card" key={project._id}>{project.title}</h3>
-              <p className="card-title">{project.description}</p>
-              <p className="text-muted"><b>Budget:</b> ₹{project.budget}</p>
+      {/* ✅ EMPTY STATE */}
+      {projects.length === 0 && !error && (
+        <div className="empty-state">
+          <h3>No projects available</h3>
+          <p>Check back later to find new opportunities.</p>
+        </div>
+      )}
 
-              {user?.role === 'freelancer' && (
-                alreadyApplied ? (
-                  <p style={{ color: 'gray', fontStyle: 'italic' }}>
-                    You already applied
+      {/* ✅ PROJECT GRID */}
+      {projects.length > 0 && (
+        <div className="card-grid">
+          {projects.map((project) => {
+            const alreadyApplied =
+              appliedProjectIds.includes(project._id);
+
+            return (
+              <div
+                key={project._id}
+                className="card project-card"
+              >
+                {/* HEADER */}
+                <div className="project-card-header">
+                  <h3 className="project-card-title">
+                    {project.title}
+                  </h3>
+
+                  <div className="badge badge-open">
+                    Open
+                  </div>
+                </div>
+
+                {/* BODY */}
+                <div className="project-card-body">
+                  <p>{project.description}</p>
+
+                  <p className="mt-1">
+                    <b>Budget:</b> ₹{project.budget}
                   </p>
-                ) : (
-                  <Link to={`/apply/${project._id}`}>
-                    <button className="text-muted">Apply</button>
-                  </Link>
-                )
-              )}
-            </div>
-          );
-        })}
-      </div>
+                </div>
+
+                {/* ACTIONS */}
+                {user?.role === 'freelancer' && (
+                  <div className="project-card-actions">
+                    {alreadyApplied ? (
+                      <span
+                        style={{
+                          fontSize: '0.85rem',
+                          color: '#6b7280',
+                        }}
+                      >
+                        Already applied
+                      </span>
+                    ) : (
+                      <Link to={`/apply/${project._id}`}>
+                        <button className="btn btn-primary">
+                          Apply
+                        </button>
+                      </Link>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

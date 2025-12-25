@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../api';
 
 function MyProposals() {
   const [proposals, setProposals] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [message, setMessage] = useState('');
+  const [error, setError] = useState('');
 
   const token = localStorage.getItem('token');
 
@@ -16,14 +17,10 @@ function MyProposals() {
             Authorization: `Bearer ${token}`,
           },
         });
-
         setProposals(res.data);
-        if (res.data.length === 0) {
-          setMessage('You have not submitted any proposals yet.');
-        }
       } catch (err) {
         console.error(err);
-        setMessage('Failed to load proposals.');
+        setError('Failed to load proposals.');
       } finally {
         setLoading(false);
       }
@@ -31,7 +28,7 @@ function MyProposals() {
 
     if (token) fetchProposals();
     else {
-      setMessage('You must be logged in to view proposals.');
+      setError('You must be logged in to view proposals.');
       setLoading(false);
     }
   }, [token]);
@@ -39,28 +36,58 @@ function MyProposals() {
   if (loading) return <p>Loading your proposals...</p>;
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto' }}>
+    <div className="app-container">
       <h2>My Proposals</h2>
-      {message && <p>{message}</p>}
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '1rem' }}>
-        {proposals.map((p) => (
-          <div
-            key={p._id}
-            style={{
-              border: '1px solid #ddd',
-              padding: '1rem',
-              borderRadius: '8px',
-            }}
-          >
-            <h3>{p.projectId?.title}</h3>
-            <p><b>Bid:</b> ₹{p.bidAmount}</p>
-            <p><b>Timeline:</b> {p.estimatedTimeline}</p>
-            <p><b>Status:</b> {p.status}</p>
-            <p>{p.coverLetter}</p>
-          </div>
-        ))}
-      </div>
+      {/* ❌ real error (not empty state) */}
+      {error && <p>{error}</p>}
+
+      {/* ✅ EMPTY STATE */}
+      {proposals.length === 0 && !error && (
+        <div className="empty-state">
+          <h3>No proposals yet</h3>
+          <p>You haven’t applied to any projects yet.</p>
+          <Link to="/browse-projects">
+            <button className="btn btn-primary">
+              Find projects
+            </button>
+          </Link>
+        </div>
+      )}
+
+      {/* ✅ PROPOSALS LIST */}
+      {proposals.length > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '1rem',
+            marginTop: '1rem',
+          }}
+        >
+          {proposals.map((p) => (
+            <div key={p._id} className="card">
+              <h3>{p.projectId?.title}</h3>
+
+              <p>
+                <b>Bid:</b> ₹{p.bidAmount}
+              </p>
+              <p>
+                <b>Timeline:</b> {p.estimatedTimeline}
+              </p>
+
+              <div
+                className={`badge badge-${p.status}`}
+                style={{ marginBottom: '0.5rem' }}
+              >
+                {p.status.replace('-', ' ')}
+              </div>
+
+              <p>{p.coverLetter}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -3,6 +3,27 @@ const router = express.Router();
 const Proposal = require('../models/Proposal');
 const Project = require('../models/Project');
 const authMiddleware = require('../middleware/authMiddleware');
+/* =======================
+   FREELANCER: MY PROPOSALS
+======================= */
+router.get('/my', authMiddleware, async (req, res) => {
+  try {
+    if (req.user.role !== 'freelancer') {
+      return res.status(403).json({ message: 'Only freelancers can view proposals' });
+    }
+
+    const proposals = await Proposal.find({
+      freelancerId: req.user.id,
+    })
+      .populate('projectId', 'title status budget')
+      .sort({ createdAt: -1 });
+
+    res.json(proposals);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to load proposals' });
+  }
+});
 
 /* =======================
    CREATE PROPOSAL

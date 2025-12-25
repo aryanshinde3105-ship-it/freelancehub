@@ -21,6 +21,7 @@ import ProjectProposals from './pages/ProjectProposals';
 import MyActiveProjects from './pages/MyActiveProjects';
 import ProjectChat from './pages/ProjectChat';
 import Chats from './pages/Chats';
+import EditProfile from './pages/EditProfile';
 
 import { getToken, getCurrentUser, logout } from './auth';
 
@@ -46,66 +47,88 @@ function Layout() {
 
   return (
     <div>
-      <nav style={{ display: 'flex', gap: '1rem', padding: '1rem', borderBottom: '1px solid #eee' }}>
-  <Link to="/">Home</Link>
+      {/* ================= NAVBAR ================= */}
+      <header className="navbar">
+        <div className="navbar-inner">
+          {/* Brand */}
+          <Link to="/" className="navbar-brand">
+            FreelanceHub
+          </Link>
 
-  {getToken() && <Link to="/dashboard">Dashboard</Link>}
+          {/* Links */}
+          <nav className="navbar-links">
+            <Link to="/browse-projects">Browse Projects</Link>
 
-  <Link to="/browse-projects">Browse Projects</Link>
+            {token && <Link to="/dashboard">Dashboard</Link>}
 
-  {user?.role === 'client' && (
-    <>
-      <Link to="/post-project">Post Project</Link>
-      <Link to="/my-projects">My Projects</Link>
-    </>
-  )}
+            {user?.role === 'client' && (
+              <>
+                <Link to="/post-project">Post Project</Link>
+                <Link to="/my-projects">My Projects</Link>
+              </>
+            )}
 
-  {user?.role === 'freelancer' && (
-    <>
-      <Link to="/my-proposals">My Proposals</Link>
-      <Link to="/my-active-projects">My Active Projects</Link>
-    </>
-  )}
+            {user?.role === 'freelancer' && (
+              <>
+                <Link to="/my-proposals">My Proposals</Link>
+                <Link to="/my-active-projects">Active Projects</Link>
+              </>
+            )}
 
-  {!getToken() && (
-    <>
-      <Link to="/login">Login</Link>
-      <Link to="/register">Create Account</Link>
-    </>
-  )}
+            {token && <Link to="/chats">Chats</Link>}
+          </nav>
 
-  {getToken() && (
-    <>
-      <Link to="/chats">Chats</Link>
-      <Link to="/profile">Profile</Link>
-      <button onClick={handleLogout}>Logout</button>
-    </>
-  )}
-</nav>
+          {/* Actions */}
+          <div className="navbar-actions">
+            {!token ? (
+              <>
+                <Link to="/login" className="btn btn-secondary">
+                  Login
+                </Link>
+                <Link to="/register" className="btn btn-primary">
+                  Sign up
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to="/profile" className="btn btn-secondary">
+                  Profile
+                </Link>
+                <button
+                  className="btn btn-primary"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </header>
 
-
-      <main style={{ padding: '2rem' }}>
+      {/* ================= MAIN ================= */}
+      <main>
         <Routes>
           <Route
-  path="/"
-  element={
-    <div className="app-container">
-      <div className="card">
-        <h2>Welcome to FreelanceHub 👋</h2>
-        <p>
-          FreelanceHub connects clients with freelancers to collaborate on projects,
-          manage proposals, chat in real-time, and complete work securely.
-        </p>
-
-        <p>
-          {getToken()
-            ? 'Go to your dashboard to continue working.'
-            : 'Create an account or login to get started.'}
-        </p>
-      </div>
-    </div>
-  }
-/>
+            path="/"
+            element={
+              <div className="app-container">
+                <div className="card">
+                  <h2>Welcome to FreelanceHub 👋</h2>
+                  <p>
+                    FreelanceHub connects clients with freelancers to collaborate
+                    on projects, manage proposals, chat in real-time, and complete
+                    work securely.
+                  </p>
+                  <p>
+                    {token
+                      ? 'Go to your dashboard to continue working.'
+                      : 'Create an account or login to get started.'}
+                  </p>
+                </div>
+              </div>
+            }
+          />
 
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
@@ -200,6 +223,15 @@ function Layout() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/edit-profile"
+            element={
+            <ProtectedRoute>
+              <EditProfile />
+            </ProtectedRoute>
+  }
+/>
+
         </Routes>
       </main>
     </div>

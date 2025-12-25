@@ -53,57 +53,99 @@ function MyProjects() {
     <div className="app-container">
       <h2>My Projects</h2>
 
-      {projects.map((project) => (
-        <div className="card" key={project._id}>
-          <h3 className="card-title">{project.title}</h3>
-          <p className="text-muted">Status: {project.status}</p>
-
-          <ProjectProgress status={project.status} />
-
-          {project.deliverables?.length > 0 && (
-            <>
-              <h4>Uploaded Files</h4>
-              <ul>
-                {project.deliverables.map((file, i) => (
-                  <li key={i}>
-                    <a
-                      href={`http://localhost:5000/uploads/${file.filename}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      {file.originalName}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </>
-          )}
-
-          {project.status === 'pending-approval' && (
-            <>
-              <button onClick={() => approveProject(project._id)}>Approve</button>
-
-              <div style={{ marginTop: '0.5rem' }}>
-                <textarea
-                  placeholder="Reason for rejection"
-                  value={rejectReason[project._id] || ''}
-                  onChange={(e) =>
-                    setRejectReason({ ...rejectReason, [project._id]: e.target.value })
-                  }
-                />
-                <br />
-                <button onClick={() => rejectProject(project._id)}>Reject</button>
-              </div>
-            </>
-          )}
-
-          {project.assignedFreelancerId && (
-            <Link to={`/chat/${project._id}`}>
-              <button>Open Chat</button>
-            </Link>
-          )}
+      {/* ✅ EMPTY STATE */}
+      {projects.length === 0 ? (
+        <div className="empty-state">
+          <h3>No projects yet</h3>
+          <p>You haven’t posted any projects yet.</p>
+          <Link to="/post-project">
+            <button className="btn btn-primary">
+              Post your first project
+            </button>
+          </Link>
         </div>
-      ))}
+      ) : (
+        <div className="card-grid">
+          {projects.map((project) => (
+            <div className="card project-card" key={project._id}>
+              {/* HEADER */}
+              <div className="project-card-header">
+                <h3 className="project-card-title">
+                  {project.title}
+                </h3>
+
+                <div className={`badge badge-${project.status}`}>
+                  {project.status.replace('-', ' ')}
+                </div>
+              </div>
+
+              {/* BODY */}
+              <div className="project-card-body">
+                <ProjectProgress status={project.status} />
+
+                {project.deliverables?.length > 0 && (
+                  <>
+                    <h4 className="mt-2">Uploaded Files</h4>
+                    <ul>
+                      {project.deliverables.map((file, i) => (
+                        <li key={i}>
+                          <a
+                            href={`http://localhost:5000/uploads/${file.filename}`}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {file.originalName}
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  </>
+                )}
+              </div>
+
+              {/* ACTIONS */}
+              <div className="project-card-actions">
+                {project.status === 'pending-approval' && (
+                  <>
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => approveProject(project._id)}
+                    >
+                      Approve
+                    </button>
+
+                    <textarea
+                      placeholder="Reason for rejection"
+                      value={rejectReason[project._id] || ''}
+                      onChange={(e) =>
+                        setRejectReason({
+                          ...rejectReason,
+                          [project._id]: e.target.value,
+                        })
+                      }
+                    />
+
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => rejectProject(project._id)}
+                    >
+                      Reject
+                    </button>
+                  </>
+                )}
+
+                {project.assignedFreelancerId && (
+                  <Link to={`/chat/${project._id}`}>
+                    <button className="btn btn-secondary">
+                      Open Chat
+                    </button>
+                  </Link>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

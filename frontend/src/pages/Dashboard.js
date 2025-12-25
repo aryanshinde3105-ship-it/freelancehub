@@ -1,104 +1,101 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import api from '../api';
 import { getCurrentUser } from '../auth';
 
 function Dashboard() {
   const user = getCurrentUser();
-  const token = localStorage.getItem('token');
 
-  const [stats, setStats] = useState({
-    total: 0,
-    active: 0,
-    pending: 0,
-  });
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        // Client dashboard
-        if (user.role === 'client') {
-          const res = await api.get('/api/projects/my', {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-
-          const projects = res.data;
-          setStats({
-            total: projects.length,
-            active: projects.filter(p => p.status === 'in-progress').length,
-            pending: projects.filter(p => p.status === 'pending-approval').length,
-          });
-        }
-
-        // Freelancer dashboard
-        if (user.role === 'freelancer') {
-          const res = await api.get('/api/projects/active', {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-
-          const projects = res.data;
-          setStats({
-            total: projects.length,
-            active: projects.filter(p => p.status === 'in-progress').length,
-            pending: projects.filter(p => p.status === 'pending-approval').length,
-          });
-        }
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    fetchStats();
-  }, [user, token]);
+  if (!user) {
+    return (
+      <div className="app-container text-center">
+        <h2>Please log in</h2>
+      </div>
+    );
+  }
 
   return (
     <div className="app-container">
-      <h2>Dashboard</h2>
-
-      {/* SUMMARY CARDS */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-        <div className="card">
-          <h3 className="card-title">Total Projects</h3>
-          <p className="text-muted">{stats.total}</p>
-        </div>
-
-        <div className="card">
-          <h3 className="card-title">Active</h3>
-          <p className="text-muted">{stats.active}</p>
-        </div>
-
-        <div className="card">
-          <h3 className="card-title">Pending Approval</h3>
-          <p className="text-muted">{stats.pending}</p>
-        </div>
+      {/* Header */}
+      <div className="card">
+        <h2>Welcome back, {user.name} 👋</h2>
+        <p>
+          You are logged in as <b>{user.role}</b>
+        </p>
       </div>
 
-      {/* QUICK ACTIONS */}
-      <div style={{ marginTop: '2rem' }}>
+      {/* Primary Actions */}
+      <div className="card">
         <h3>Quick Actions</h3>
 
-        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+        {user.role === 'client' && (
+          <div className="mt-2">
+            <Link to="/post-project">
+              <button className="btn btn-primary">
+                + Post a New Project
+              </button>
+            </Link>
+          </div>
+        )}
+
+        {user.role === 'freelancer' && (
+          <div className="mt-2">
+            <Link to="/browse-projects">
+              <button className="btn btn-primary">
+                🔍 Browse Projects
+              </button>
+            </Link>
+          </div>
+        )}
+      </div>
+
+      {/* Navigation Sections */}
+      <div className="card">
+        <h3>Your Workspace</h3>
+
+        <div className="mt-2" style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
           {user.role === 'client' && (
             <>
-              <Link to="/post-project">
-                <button className="btn btn-primary">Post Project</button>
-              </Link>
               <Link to="/my-projects">
-                <button className="btn btn-secondary">My Projects</button>
+                <button className="btn btn-secondary">
+                  📁 My Projects
+                </button>
+              </Link>
+
+              <Link to="/chats">
+                <button className="btn btn-secondary">
+                  💬 Chats
+                </button>
               </Link>
             </>
           )}
 
           {user.role === 'freelancer' && (
             <>
-              <Link to="/my-active-projects">
-                <button className="btn btn-primary">My Active Projects</button>
-              </Link>
               <Link to="/my-proposals">
-                <button className="btn btn-secondary">My Proposals</button>
+                <button className="btn btn-secondary">
+                  📄 My Proposals
+                </button>
+              </Link>
+
+              <Link to="/active-projects">
+                <button className="btn btn-secondary">
+                  🛠 Active Work
+                </button>
+              </Link>
+
+              <Link to="/chats">
+                <button className="btn btn-secondary">
+                  💬 Chats
+                </button>
               </Link>
             </>
           )}
+
+          <Link to="/profile">
+            <button className="btn btn-secondary">
+              👤 Profile
+            </button>
+          </Link>
         </div>
       </div>
     </div>
