@@ -765,3 +765,12 @@ input, textarea, select {
     transition-duration: 0.01ms !important;
   }
 }
+/* =========================
+   Dashboard Activity Hover
+========================= */
+
+.activity-item-hover:hover {
+  background-color: rgba(102, 126, 234, 0.05);
+  border-color: rgba(102, 126, 234, 0.3);
+  transform: translateX(4px);
+}

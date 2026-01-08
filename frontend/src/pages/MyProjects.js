@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api';
 import ProjectProgress from '../components/ProjectProgress';
+import { getFileUrl } from '../utils/apiUrl';
+
 
 function MyProjects() {
   const [projects, setProjects] = useState([]);
@@ -111,7 +113,7 @@ function MyProjects() {
                       {project.deliverables.map((file, i) => (
                         <li key={i}>
                           <a
-                            href={`${process.env.REACT_APP_API_URL}/uploads/${file.filename}`}
+                            href={getFileUrl(file.filename)}
                             target="_blank"
                             rel="noreferrer"
                           >
