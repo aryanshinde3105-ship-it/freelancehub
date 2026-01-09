@@ -112,11 +112,8 @@ function MyProjects() {
                     <ul>
                       {project.deliverables.map((file, i) => (
                         <li key={i}>
-                          <a
-                            href={getFileUrl(file.filename)}
-                            target="_blank"
-                            rel="noreferrer"
-                          >
+                          <a href={file.url || getFileUrl(file.filename)} target="_blank" rel="noreferrer">
+
                             {file.originalName}
                           </a>
                         </li>

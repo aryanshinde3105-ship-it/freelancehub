@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+
 const projectSchema = new mongoose.Schema(
   {
     title: {
@@ -15,11 +16,13 @@ const projectSchema = new mongoose.Schema(
       required: true,
     },
 
+
     // ✅ FIX: store required skills
     requiredSkills: {
       type: [String],
       default: [],
     },
+
 
     budget: {
       type: Number,
@@ -28,6 +31,7 @@ const projectSchema = new mongoose.Schema(
     deadline: {
       type: Date,
     },
+
 
     clientId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -40,16 +44,19 @@ const projectSchema = new mongoose.Schema(
       default: null,
     },
 
+
     status: {
       type: String,
       enum: ['open', 'in-progress', 'pending-approval', 'completed'],
       default: 'open',
     },
 
+
     deliverables: [
       {
         filename: String,
         originalName: String,
+        url: String,
         uploadedBy: {
           type: mongoose.Schema.Types.ObjectId,
           ref: 'User',
@@ -61,6 +68,7 @@ const projectSchema = new mongoose.Schema(
       },
     ],
 
+
     rejectionReason: {
       type: String,
     },
@@ -71,6 +79,7 @@ const projectSchema = new mongoose.Schema(
       type: Date,
     },
 
+
     archivedBy: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -80,5 +89,6 @@ const projectSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
 
 module.exports = mongoose.model('Project', projectSchema);
