@@ -32,13 +32,65 @@ router.post('/', authMiddleware, async (req, res) => {
 
 
 /* =======================
-   GET ALL OPEN PROJECTS
+   GET ALL OPEN PROJECTS WITH SEARCH & FILTERS
 ======================= */
 router.get('/', async (req, res) => {
   try {
-    const projects = await Project.find({ status: 'open' }).sort({ createdAt: -1 });
+    const { 
+      search, 
+      category, 
+      minBudget, 
+      maxBudget, 
+      deadline,
+      sortBy = 'createdAt',
+      sortOrder = 'desc'
+    } = req.query;
+
+    // Build query
+    let query = { status: 'open' };
+
+    // Search by keyword (title, description, category, skills)
+    if (search && search.trim() !== '') {
+      query.$or = [
+        { title: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { category: { $regex: search, $options: 'i' } },
+        { requiredSkills: { $elemMatch: { $regex: search, $options: 'i' } } }
+      ];
+    }
+
+    // Filter by category
+    if (category && category.trim() !== '' && category !== 'all') {
+      query.category = { $regex: category, $options: 'i' };
+    }
+
+    // Filter by budget range
+    if (minBudget || maxBudget) {
+      query.budget = {};
+      if (minBudget) query.budget.$gte = Number(minBudget);
+      if (maxBudget) query.budget.$lte = Number(maxBudget);
+    }
+
+    // Filter by deadline (projects with deadline before specified date)
+    if (deadline) {
+      query.deadline = { $lte: new Date(deadline) };
+    }
+
+    // Build sort options
+    let sortOptions = {};
+    const validSortFields = ['createdAt', 'budget', 'deadline'];
+    const validSortOrders = ['asc', 'desc'];
+    
+    if (validSortFields.includes(sortBy)) {
+      sortOptions[sortBy] = validSortOrders.includes(sortOrder) ? sortOrder : 'desc';
+    } else {
+      sortOptions.createdAt = 'desc';
+    }
+
+    const projects = await Project.find(query).sort(sortOptions);
     res.json(projects);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 });
