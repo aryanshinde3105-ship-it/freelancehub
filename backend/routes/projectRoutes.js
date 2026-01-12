@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const Project = require('../models/Project');
+const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
 const { uploadFileToAzure, getAzureFileUrl } = require('../utils/azureStorage');
+const { createNotification } = require('../utils/notificationHelper'); // NEW IMPORT
 
 
 
@@ -248,7 +250,7 @@ router.post(
       }
 
 
-      const project = await Project.findById(req.params.id);
+      const project = await Project.findById(req.params.id).populate('clientId', 'name');
       if (!project) return res.status(404).json({ message: 'Project not found' });
 
 
@@ -264,7 +266,7 @@ router.post(
       const filename = `${Date.now()}-${Math.random() * 1000000 | 0}`;
       const fileUrl = await uploadFileToAzure(filename, req.file.path, req.file.mimetype);
 
-
+      const freelancer = await User.findById(req.user.id);
 
       project.deliverables.push({
         filename: filename,
@@ -281,6 +283,15 @@ router.post(
 
 
       await project.save();
+
+      // ✅ SEND NOTIFICATION TO CLIENT
+      await createNotification({
+        userId: project.clientId._id,
+        type: 'deliverable_uploaded',
+        title: 'Work Submitted for Review',
+        message: `${freelancer.name} has uploaded the final deliverables for "${project.title}"`,
+        link: `/my-projects`,
+      });
 
 
       res.json({ message: 'File uploaded successfully', fileUrl });
@@ -325,6 +336,15 @@ router.patch('/:id/reject', authMiddleware, async (req, res) => {
 
     await project.save();
 
+    // ✅ SEND NOTIFICATION TO FREELANCER
+    await createNotification({
+      userId: project.assignedFreelancerId,
+      type: 'project_rejected',
+      title: 'Revision Requested',
+      message: `The client has requested revisions for "${project.title}". Check the feedback.`,
+      link: `/my-active-projects`,
+    });
+
 
     res.json({ message: 'Project rejected with reason' });
   } catch (err) {
@@ -365,6 +385,15 @@ router.patch('/:id/approve', authMiddleware, async (req, res) => {
 
     project.status = 'completed';
     await project.save();
+
+    // ✅ SEND NOTIFICATION TO FREELANCER
+    await createNotification({
+      userId: project.assignedFreelancerId,
+      type: 'project_completed',
+      title: 'Project Approved! 🎉',
+      message: `Congratulations! Your work for "${project.title}" has been approved.`,
+      link: `/my-active-projects`,
+    });
 
 
     res.json({ message: 'Project approved' });

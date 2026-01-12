@@ -22,6 +22,8 @@ import MyActiveProjects from './pages/MyActiveProjects';
 import ProjectChat from './pages/ProjectChat';
 import Chats from './pages/Chats';
 import EditProfile from './pages/EditProfile';
+import NotificationBell from './components/NotificationBell';
+import Notifications from './pages/Notifications';
 
 import { getToken, getCurrentUser, logout } from './auth';
 
@@ -91,6 +93,9 @@ function Layout() {
               </>
             ) : (
               <>
+                {/* ADD NOTIFICATION BELL HERE */}
+                <NotificationBell />
+
                 <Link to="/profile" className="btn btn-secondary">
                   Profile
                 </Link>
@@ -223,15 +228,23 @@ function Layout() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/edit-profile"
             element={
-            <ProtectedRoute>
-              <EditProfile />
-            </ProtectedRoute>
-  }
-/>
-
+              <ProtectedRoute>
+                <EditProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <Notifications />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </main>
     </div>

@@ -2,7 +2,10 @@ const express = require('express');
 const router = express.Router();
 const Proposal = require('../models/Proposal');
 const Project = require('../models/Project');
+const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware');
+const { createNotification } = require('../utils/notificationHelper'); // NEW IMPORT
+
 /* =======================
    FREELANCER: MY PROPOSALS
 ======================= */
@@ -48,6 +51,20 @@ router.post('/:projectId', authMiddleware, async (req, res) => {
       freelancerId: req.user.id,
       ...req.body,
     });
+
+    // ✅ SEND NOTIFICATION TO CLIENT
+    const project = await Project.findById(req.params.projectId);
+    const freelancer = await User.findById(req.user.id);
+    
+    if (project && freelancer) {
+      await createNotification({
+        userId: project.clientId,
+        type: 'proposal_received',
+        title: 'New Proposal Received',
+        message: `${freelancer.name} has submitted a proposal for "${project.title}"`,
+        link: `/project/${project._id}/proposals`,
+      });
+    }
 
     res.status(201).json(proposal);
   } catch (err) {
@@ -114,6 +131,8 @@ router.patch('/:proposalId/accept', authMiddleware, async (req, res) => {
     }
 
     // update proposal statuses
+    const allProposals = await Proposal.find({ projectId: project._id });
+    
     await Proposal.updateMany(
       { projectId: project._id },
       { status: 'rejected' }
@@ -121,6 +140,28 @@ router.patch('/:proposalId/accept', authMiddleware, async (req, res) => {
 
     proposal.status = 'accepted';
     await proposal.save();
+
+    // ✅ SEND NOTIFICATION TO ACCEPTED FREELANCER
+    await createNotification({
+      userId: proposal.freelancerId,
+      type: 'proposal_accepted',
+      title: 'Proposal Accepted! 🎉',
+      message: `Congratulations! Your proposal for "${project.title}" has been accepted.`,
+      link: `/my-active-projects`,
+    });
+
+    // ✅ SEND NOTIFICATIONS TO REJECTED FREELANCERS
+    for (const rejectedProposal of allProposals) {
+      if (rejectedProposal._id.toString() !== proposal._id.toString()) {
+        await createNotification({
+          userId: rejectedProposal.freelancerId,
+          type: 'proposal_rejected',
+          title: 'Proposal Not Selected',
+          message: `Your proposal for "${project.title}" was not selected. Keep applying!`,
+          link: `/browse-projects`,
+        });
+      }
+    }
 
     res.json({ message: 'Proposal accepted safely' });
   } catch (err) {
@@ -154,6 +195,15 @@ router.patch('/:proposalId/reject', authMiddleware, async (req, res) => {
 
     proposal.status = 'rejected';
     await proposal.save();
+
+    // ✅ SEND NOTIFICATION TO FREELANCER
+    await createNotification({
+      userId: proposal.freelancerId,
+      type: 'proposal_rejected',
+      title: 'Proposal Not Selected',
+      message: `Your proposal for "${project.title}" was not selected.`,
+      link: `/browse-projects`,
+    });
 
     res.json({ message: 'Proposal rejected' });
   } catch (err) {

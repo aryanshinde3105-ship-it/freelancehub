@@ -33,7 +33,7 @@ app.use('/api/proposals', require('./routes/proposalRoutes'));
 app.use('/api/chat', require('./routes/chatRoutes'));
 app.use('/api/users', userRoutes);
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
-
+app.use('/api/notifications', require('./routes/notificationRoutes'));
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
