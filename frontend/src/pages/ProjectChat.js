@@ -36,6 +36,7 @@ function ProjectChat() {
     return () => {
       clearInterval(intervalRef.current);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, token]);
 
   // ✅ auto-scroll on new messages

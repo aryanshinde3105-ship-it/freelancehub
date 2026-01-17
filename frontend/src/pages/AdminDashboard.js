@@ -16,16 +16,20 @@ function AdminDashboard() {
   const [roleFilter, setRoleFilter] = useState('all');
 
   useEffect(() => {
-    fetchAdminStats();
-  }, []);
+  fetchAdminStats();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, []);
+
 
   useEffect(() => {
-    if (activeTab === 'users') {
-      fetchUsers();
-    } else if (activeTab === 'projects') {
-      fetchProjects();
-    }
-  }, [activeTab, searchQuery, roleFilter]);
+  if (activeTab === 'users') {
+    fetchUsers();
+  } else if (activeTab === 'projects') {
+    fetchProjects();
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [activeTab, searchQuery, roleFilter]);
+
 
   const fetchAdminStats = async () => {
     try {
