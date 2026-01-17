@@ -24,6 +24,8 @@ import Chats from './pages/Chats';
 import EditProfile from './pages/EditProfile';
 import NotificationBell from './components/NotificationBell';
 import Notifications from './pages/Notifications';
+import AdminDashboard from './pages/AdminDashboard';
+
 
 import { getToken, getCurrentUser, logout } from './auth';
 
@@ -134,7 +136,7 @@ function Layout() {
               </div>
             }
           />
-
+          <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/browse-projects" element={<BrowseProjects />} />

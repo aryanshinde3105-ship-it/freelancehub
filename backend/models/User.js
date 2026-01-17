@@ -24,8 +24,24 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ['client', 'freelancer'],
+      enum: ['client', 'freelancer', 'admin'], // ✅ ADDED 'admin'
       default: 'client',
+    },
+
+    // ✅ NEW ADMIN MANAGEMENT FIELDS
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
+
+    isBanned: {
+      type: Boolean,
+      default: false,
+    },
+
+    bannedReason: {
+      type: String,
+      default: '',
     },
 
     /* =====================

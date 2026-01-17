@@ -4,6 +4,7 @@ const cors = require('cors');
 const path = require('path');
 const connectDB = require('./config/db');
 const userRoutes = require('./routes/userRoutes');
+const adminRoutes = require('./routes/adminRoutes'); // ✅ ADDED THIS LINE
 
 dotenv.config();
 
@@ -34,6 +35,7 @@ app.use('/api/chat', require('./routes/chatRoutes'));
 app.use('/api/users', userRoutes);
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
+app.use('/api/admin', adminRoutes); // ✅ ADDED THIS LINE
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
