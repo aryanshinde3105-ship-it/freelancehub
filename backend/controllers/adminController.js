@@ -144,7 +144,7 @@ const getAllProjects = async (req, res) => {
     }
 
     const projects = await Project.find(query)
-      .populate('client', 'name email')
+      .populate('clientId', 'name email') // ✅ FIXED: changed from 'client' to 'clientId'
       .sort({ createdAt: -1 })
       .limit(limit * 1)
       .skip((page - 1) * limit);

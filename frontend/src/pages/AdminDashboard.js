@@ -61,10 +61,10 @@ function AdminDashboard() {
       );
 
       const data = await res.json();
-      setUsers(data.users || []); // ✅ Added fallback
+      setUsers(data.users || []);
     } catch (error) {
       console.error('Error fetching users:', error);
-      setUsers([]); // ✅ Set empty array on error
+      setUsers([]);
     }
   };
 
@@ -77,10 +77,10 @@ function AdminDashboard() {
       });
 
       const data = await res.json();
-      setProjects(data.projects || []); // ✅ Added fallback
+      setProjects(data.projects || []);
     } catch (error) {
       console.error('Error fetching projects:', error);
-      setProjects([]); // ✅ Set empty array on error
+      setProjects([]);
     }
   };
 
@@ -306,7 +306,8 @@ function AdminDashboard() {
                 {projects.map((project) => (
                   <tr key={project._id}>
                     <td>{project.title}</td>
-                    <td>{project.client?.name || 'N/A'}</td>
+                    <td>{project.clientId?.name || 'N/A'}</td>
+                    {/* ✅ FIXED: changed from project.client to project.clientId */}
                     <td>${project.budget}</td>
                     <td>
                       <span className={`status-badge ${project.status}`}>
