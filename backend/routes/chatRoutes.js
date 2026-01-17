@@ -2,7 +2,9 @@ const express = require('express');
 const router = express.Router();
 const Message = require('../models/Message');
 const Project = require('../models/Project');
+const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware');
+const { createNotification } = require('../utils/notificationHelper'); // NEW IMPORT
 
 /* =======================
    GET CHAT MESSAGES
@@ -61,6 +63,24 @@ router.post('/:projectId', authMiddleware, async (req, res) => {
       senderId: req.user.id,
       text,
     });
+
+    // ✅ SEND NOTIFICATION TO RECIPIENT
+    const sender = await User.findById(req.user.id);
+    
+    // Determine recipient (if sender is client, recipient is freelancer, and vice versa)
+    const recipientId = isClient 
+      ? project.assignedFreelancerId 
+      : project.clientId;
+
+    if (recipientId) {
+      await createNotification({
+        userId: recipientId,
+        type: 'new_message',
+        title: 'New Message',
+        message: `${sender.name} sent you a message about "${project.title}"`,
+        link: `/chat/${project._id}`,
+      });
+    }
 
     res.status(201).json(message);
   } catch (err) {
