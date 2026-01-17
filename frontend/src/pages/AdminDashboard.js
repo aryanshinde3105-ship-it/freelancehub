@@ -61,9 +61,10 @@ function AdminDashboard() {
       );
 
       const data = await res.json();
-      setUsers(data.users);
+      setUsers(data.users || []); // ✅ Added fallback
     } catch (error) {
       console.error('Error fetching users:', error);
+      setUsers([]); // ✅ Set empty array on error
     }
   };
 
@@ -76,9 +77,10 @@ function AdminDashboard() {
       });
 
       const data = await res.json();
-      setProjects(data.projects);
+      setProjects(data.projects || []); // ✅ Added fallback
     } catch (error) {
       console.error('Error fetching projects:', error);
+      setProjects([]); // ✅ Set empty array on error
     }
   };
 
@@ -186,7 +188,7 @@ function AdminDashboard() {
         </button>
       </div>
 
-      {activeTab === 'dashboard' && (
+      {activeTab === 'dashboard' && stats && (
         <div className="admin-stats">
           <div className="stat-card">
             <h3>Total Users</h3>
@@ -232,91 +234,103 @@ function AdminDashboard() {
             </select>
           </div>
 
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Joined</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map((user) => (
-                <tr key={user._id}>
-                  <td>{user.name}</td>
-                  <td>{user.email}</td>
-                  <td>
-                    <span className={`role-badge ${user.role}`}>{user.role}</span>
-                  </td>
-                  <td>
-                    {user.isBanned ? (
-                      <span className="status-badge banned">Banned</span>
-                    ) : (
-                      <span className="status-badge active">Active</span>
-                    )}
-                  </td>
-                  <td>{new Date(user.createdAt).toLocaleDateString()}</td>
-                  <td>
-                    <button
-                      className={user.isBanned ? 'btn-unban' : 'btn-ban'}
-                      onClick={() => handleBanUser(user._id, user.isBanned)}
-                    >
-                      {user.isBanned ? '✅ Unban' : '🚫 Ban'}
-                    </button>
-                    <button
-                      className="btn-delete"
-                      onClick={() => handleDeleteUser(user._id)}
-                    >
-                      🗑️ Delete
-                    </button>
-                  </td>
+          {users && users.length > 0 ? (
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Status</th>
+                  <th>Joined</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {users.map((user) => (
+                  <tr key={user._id}>
+                    <td>{user.name}</td>
+                    <td>{user.email}</td>
+                    <td>
+                      <span className={`role-badge ${user.role}`}>{user.role}</span>
+                    </td>
+                    <td>
+                      {user.isBanned ? (
+                        <span className="status-badge banned">Banned</span>
+                      ) : (
+                        <span className="status-badge active">Active</span>
+                      )}
+                    </td>
+                    <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                    <td>
+                      <button
+                        className={user.isBanned ? 'btn-unban' : 'btn-ban'}
+                        onClick={() => handleBanUser(user._id, user.isBanned)}
+                      >
+                        {user.isBanned ? '✅ Unban' : '🚫 Ban'}
+                      </button>
+                      <button
+                        className="btn-delete"
+                        onClick={() => handleDeleteUser(user._id)}
+                      >
+                        🗑️ Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
+              No users found.
+            </div>
+          )}
         </div>
       )}
 
       {activeTab === 'projects' && (
         <div className="admin-projects">
-          <table className="admin-table">
-            <thead>
-              <tr>
-                <th>Title</th>
-                <th>Client</th>
-                <th>Budget</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {projects.map((project) => (
-                <tr key={project._id}>
-                  <td>{project.title}</td>
-                  <td>{project.client?.name || 'N/A'}</td>
-                  <td>${project.budget}</td>
-                  <td>
-                    <span className={`status-badge ${project.status}`}>
-                      {project.status}
-                    </span>
-                  </td>
-                  <td>{new Date(project.createdAt).toLocaleDateString()}</td>
-                  <td>
-                    <button
-                      className="btn-delete"
-                      onClick={() => handleDeleteProject(project._id)}
-                    >
-                      🗑️ Delete
-                    </button>
-                  </td>
+          {projects && projects.length > 0 ? (
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Client</th>
+                  <th>Budget</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {projects.map((project) => (
+                  <tr key={project._id}>
+                    <td>{project.title}</td>
+                    <td>{project.client?.name || 'N/A'}</td>
+                    <td>${project.budget}</td>
+                    <td>
+                      <span className={`status-badge ${project.status}`}>
+                        {project.status}
+                      </span>
+                    </td>
+                    <td>{new Date(project.createdAt).toLocaleDateString()}</td>
+                    <td>
+                      <button
+                        className="btn-delete"
+                        onClick={() => handleDeleteProject(project._id)}
+                      >
+                        🗑️ Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div style={{ padding: '40px', textAlign: 'center', color: '#666' }}>
+              No projects found.
+            </div>
+          )}
         </div>
       )}
     </div>

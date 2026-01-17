@@ -13,8 +13,8 @@ const authMiddleware = async (req, res, next) => {
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // decoded.id comes from when we signed the token
-    const user = await User.findById(decoded.id).select('role');
+    // Support both 'userId' and 'id' for backward compatibility
+    const user = await User.findById(decoded.userId || decoded.id).select('role');
     if (!user) {
       return res.status(401).json({ message: 'User not found' });
     }
