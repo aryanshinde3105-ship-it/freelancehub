@@ -47,4 +47,26 @@ router.get('/me', authMiddleware, async (req, res) => {
   }
 });
 
+/* =========================
+   GET USER BY ID (PUBLIC)
+   GET /api/users/:id
+   Used for displaying public profile & rating stats
+========================= */
+router.get('/:id', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select(
+      'name role ratingStats bio skills hourlyRate location'
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(user);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Failed to fetch user' });
+  }
+});
+
 module.exports = router;

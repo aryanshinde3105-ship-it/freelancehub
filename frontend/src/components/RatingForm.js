@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import StarRating from './StarRating';
-import axios from 'axios';
+import api from '../api';
 import '../styles/RatingForm.css';
 
 const RatingForm = ({ projectId, reviewedUserId, reviewedUserName, onSuccess, onCancel }) => {
@@ -26,23 +26,16 @@ const RatingForm = ({ projectId, reviewedUserId, reviewedUserName, onSuccess, on
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      await axios.post(
-        `http://localhost:5000/api/ratings`,
-        {
-          projectId,
-          reviewedUserId,
-          rating,
-          comment: comment.trim(),
-          communication: dimensions.communication || null,
-          quality: dimensions.quality || null,
-          professionalism: dimensions.professionalism || null,
-          timeliness: dimensions.timeliness || null,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      await api.post('/api/ratings', {
+        projectId,
+        reviewedUserId,
+        rating,
+        comment: comment.trim(),
+        communication: dimensions.communication || null,
+        quality: dimensions.quality || null,
+        professionalism: dimensions.professionalism || null,
+        timeliness: dimensions.timeliness || null,
+      });
 
       alert('Rating submitted successfully!');
       if (onSuccess) onSuccess();

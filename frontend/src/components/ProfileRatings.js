@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import StarRating from './StarRating';
-import axios from 'axios';
+import api from '../api';
 import '../styles/ProfileRatings.css';
 
 const ProfileRatings = ({ userId }) => {
@@ -21,8 +21,10 @@ const ProfileRatings = ({ userId }) => {
     setError('');
     try {
       const [ratingsRes, userRes] = await Promise.all([
-        axios.get(`${process.env.REACT_APP_API_URL}/api/ratings/user/${userId}?page=${currentPage}&limit=5`),
-        axios.get(`${process.env.REACT_APP_API_URL}/api/users/${userId}`),
+        api.get(`/api/ratings/user/${userId}`, {
+          params: { page: currentPage, limit: 5 },
+        }),
+        api.get(`/api/users/${userId}`),
       ]);
       
       setRatings(ratingsRes.data.ratings || []);

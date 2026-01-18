@@ -1,0 +1,8 @@
+# Environment files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Keep .env and .env.production out of git for security
+.env
