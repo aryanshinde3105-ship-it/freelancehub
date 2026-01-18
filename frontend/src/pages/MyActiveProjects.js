@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api';
 import ProjectProgress from '../components/ProjectProgress';
-import RatingForm from '../components/RatingForm'; // ✅ NEW IMPORT
+import RatingForm from '../components/RatingForm';
+
 
 function MyActiveProjects() {
   const [projects, setProjects] = useState([]);
@@ -11,7 +12,7 @@ function MyActiveProjects() {
   // store selected file per projectId
   const [selectedFiles, setSelectedFiles] = useState({});
 
-  // ✅ NEW: Rating modal state
+  // Rating modal state
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [currentRatingProject, setCurrentRatingProject] = useState(null);
   const [canReviewStatus, setCanReviewStatus] = useState({});
@@ -26,7 +27,7 @@ function MyActiveProjects() {
         });
         setProjects(res.data);
 
-        // ✅ NEW: Check review status for completed projects
+        // Check review status for completed projects
         const completedProjects = res.data.filter(p => p.status === 'completed');
         for (const project of completedProjects) {
           checkCanReview(project._id);
@@ -42,7 +43,7 @@ function MyActiveProjects() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  // ✅ NEW: Check if user can review a project
+  // Check if user can review a project
   const checkCanReview = async (projectId) => {
     try {
       const res = await api.get(`/api/ratings/can-review/${projectId}`, {
@@ -57,26 +58,91 @@ function MyActiveProjects() {
     }
   };
 
-  // ✅ NEW: Open rating modal
-  const openRatingModal = (project) => {
-    const reviewedUserId = project.clientId?._id || project.assignedFreelancerId?._id;
-    const reviewedUserName = project.clientId?.name || project.assignedFreelancerId?.name || 'User';
-    
-    setCurrentRatingProject({
-      ...project,
-      reviewedUserId,
-      reviewedUserName
-    });
-    setShowRatingModal(true);
+  // ✅ FIXED: Open rating modal with proper user ID detection
+  const openRatingModal = async (project) => {
+    try {
+      // Fetch full project details with populated user data
+      const res = await api.get(`/api/projects/${project._id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      const fullProject = res.data;
+      
+      // Get current user info from localStorage
+      const userStr = localStorage.getItem('user');
+      let currentUserId;
+      
+      if (userStr) {
+        const currentUser = JSON.parse(userStr);
+        currentUserId = currentUser.id || currentUser._id;
+      }
+      
+      // If user not in localStorage, decode from token
+      if (!currentUserId) {
+        const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+        currentUserId = tokenPayload.userId || tokenPayload.id;
+      }
+      
+      // Determine who to review
+      let reviewedUserId, reviewedUserName;
+      
+      // Check if clientId is populated object or just ID string
+      const clientId = typeof fullProject.clientId === 'object' 
+        ? fullProject.clientId._id 
+        : fullProject.clientId;
+      
+      const freelancerId = typeof fullProject.assignedFreelancerId === 'object'
+        ? fullProject.assignedFreelancerId._id
+        : fullProject.assignedFreelancerId;
+      
+      if (clientId === currentUserId) {
+        // Current user is client → review freelancer
+        reviewedUserId = freelancerId;
+        reviewedUserName = typeof fullProject.assignedFreelancerId === 'object'
+          ? fullProject.assignedFreelancerId.name
+          : 'Freelancer';
+      } else {
+        // Current user is freelancer → review client
+        reviewedUserId = clientId;
+        reviewedUserName = typeof fullProject.clientId === 'object'
+          ? fullProject.clientId.name
+          : 'Client';
+      }
+      
+      // If name is not available, fetch user details
+      if (reviewedUserName === 'Freelancer' || reviewedUserName === 'Client') {
+        try {
+          const userRes = await api.get(`/api/users/${reviewedUserId}`);
+          reviewedUserName = userRes.data.name;
+        } catch (err) {
+          console.error('Error fetching user name:', err);
+        }
+      }
+      
+      if (!reviewedUserId) {
+        alert('Unable to determine user to review');
+        return;
+      }
+      
+      setCurrentRatingProject({
+        ...project,
+        reviewedUserId,
+        reviewedUserName
+      });
+      setShowRatingModal(true);
+    } catch (err) {
+      console.error('Error opening rating modal:', err);
+      alert('Failed to load project details');
+    }
   };
 
-  // ✅ NEW: Close rating modal
+  // Close rating modal
   const closeRatingModal = () => {
     setShowRatingModal(false);
     setCurrentRatingProject(null);
   };
 
-  // ✅ NEW: Handle successful rating submission
+  // Handle successful rating submission
   const handleRatingSuccess = () => {
     closeRatingModal();
     // Refresh review status
@@ -129,7 +195,7 @@ function MyActiveProjects() {
     <div className="app-container">
       <h2>My Active Projects</h2>
 
-      {/* ✅ NEW: Rating Modal */}
+      {/* Rating Modal */}
       {showRatingModal && currentRatingProject && (
         <div className="modal-overlay" onClick={closeRatingModal}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
@@ -201,14 +267,14 @@ function MyActiveProjects() {
                     </div>
                   )}
 
-                  {/* ✅ NEW: Completed project message */}
+                  {/* Completed project message */}
                   {project.status === 'completed' && !reviewStatus?.hasReviewed && (
                     <p className="mt-1" style={{ color: '#16a34a', fontWeight: '500' }}>
                       ✅ Project completed successfully!
                     </p>
                   )}
 
-                  {/* ✅ NEW: Already reviewed message */}
+                  {/* Already reviewed message */}
                   {reviewStatus?.hasReviewed && (
                     <p className="mt-1" style={{ color: '#666', fontSize: '0.9rem' }}>
                       ⭐ You've already reviewed this project
@@ -248,7 +314,7 @@ function MyActiveProjects() {
                     </>
                   )}
 
-                  {/* ✅ NEW: Leave Review Button */}
+                  {/* Leave Review Button */}
                   {reviewStatus?.canReview && (
                     <button
                       className="btn btn-primary"

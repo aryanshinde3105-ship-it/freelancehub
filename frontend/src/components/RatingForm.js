@@ -18,7 +18,7 @@ const RatingForm = ({ projectId, reviewedUserId, reviewedUserName, onSuccess, on
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    
+
     if (rating === 0) {
       setError('Please select an overall rating');
       return;
@@ -28,7 +28,7 @@ const RatingForm = ({ projectId, reviewedUserId, reviewedUserName, onSuccess, on
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/ratings`,
+        `http://localhost:5000/api/ratings`,
         {
           projectId,
           reviewedUserId,
@@ -43,7 +43,7 @@ const RatingForm = ({ projectId, reviewedUserId, reviewedUserName, onSuccess, on
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      
+
       alert('Rating submitted successfully!');
       if (onSuccess) onSuccess();
     } catch (err) {
@@ -57,9 +57,9 @@ const RatingForm = ({ projectId, reviewedUserId, reviewedUserName, onSuccess, on
     <div className="rating-form-container">
       <form onSubmit={handleSubmit} className="rating-form">
         <h3>Rate {reviewedUserName}</h3>
-        
+
         {error && <div className="error-message">{error}</div>}
-        
+
         <div className="rating-section">
           <label>Overall Rating *</label>
           <StarRating rating={rating} setRating={setRating} size={32} />
@@ -67,39 +67,39 @@ const RatingForm = ({ projectId, reviewedUserId, reviewedUserName, onSuccess, on
 
         <div className="dimension-ratings">
           <h4>Detailed Ratings (Optional)</h4>
-          
+
           <div className="dimension">
             <label>Communication</label>
-            <StarRating 
-              rating={dimensions.communication} 
-              setRating={(val) => setDimensions({...dimensions, communication: val})} 
+            <StarRating
+              rating={dimensions.communication}
+              setRating={(val) => setDimensions({ ...dimensions, communication: val })}
               size={20}
             />
           </div>
-          
+
           <div className="dimension">
             <label>Quality</label>
-            <StarRating 
-              rating={dimensions.quality} 
-              setRating={(val) => setDimensions({...dimensions, quality: val})} 
+            <StarRating
+              rating={dimensions.quality}
+              setRating={(val) => setDimensions({ ...dimensions, quality: val })}
               size={20}
             />
           </div>
-          
+
           <div className="dimension">
             <label>Professionalism</label>
-            <StarRating 
-              rating={dimensions.professionalism} 
-              setRating={(val) => setDimensions({...dimensions, professionalism: val})} 
+            <StarRating
+              rating={dimensions.professionalism}
+              setRating={(val) => setDimensions({ ...dimensions, professionalism: val })}
               size={20}
             />
           </div>
-          
+
           <div className="dimension">
             <label>Timeliness</label>
-            <StarRating 
-              rating={dimensions.timeliness} 
-              setRating={(val) => setDimensions({...dimensions, timeliness: val})} 
+            <StarRating
+              rating={dimensions.timeliness}
+              setRating={(val) => setDimensions({ ...dimensions, timeliness: val })}
               size={20}
             />
           </div>
