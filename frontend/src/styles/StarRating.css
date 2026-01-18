@@ -1,0 +1,34 @@
+.star-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.star {
+  transition: color 0.2s ease, transform 0.1s ease;
+  color: #ddd;
+  user-select: none;
+}
+
+.star.filled {
+  color: #ffa500;
+}
+
+.star.interactive:hover {
+  transform: scale(1.1);
+}
+
+.star.interactive:active {
+  transform: scale(0.95);
+}
+
+.star.readonly {
+  cursor: default;
+}
+
+.rating-value {
+  font-size: 14px;
+  color: #666;
+  margin-left: 8px;
+  font-weight: 500;
+}

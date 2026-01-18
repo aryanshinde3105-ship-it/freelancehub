@@ -17,7 +17,6 @@ const projectSchema = new mongoose.Schema(
     },
 
 
-    // ✅ FIX: store required skills
     requiredSkills: {
       type: [String],
       default: [],
@@ -86,6 +85,20 @@ const projectSchema = new mongoose.Schema(
         ref: 'User',
       },
     ],
+
+    /* =====================
+       ✅ NEW: Rating Tracking
+    ===================== */
+    ratings: {
+      clientReviewed: {
+        type: Boolean,
+        default: false,
+      },
+      freelancerReviewed: {
+        type: Boolean,
+        default: false,
+      },
+    },
   },
   { timestamps: true }
 );

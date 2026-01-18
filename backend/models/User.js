@@ -24,11 +24,10 @@ const userSchema = new mongoose.Schema(
 
     role: {
       type: String,
-      enum: ['client', 'freelancer', 'admin'], // ✅ ADDED 'admin'
+      enum: ['client', 'freelancer', 'admin'],
       default: 'client',
     },
 
-    // ✅ NEW ADMIN MANAGEMENT FIELDS
     isActive: {
       type: Boolean,
       default: true,
@@ -69,6 +68,53 @@ const userSchema = new mongoose.Schema(
       type: String,
       trim: true,
       default: '',
+    },
+
+    /* =====================
+       ✅ NEW: Rating Statistics
+    ===================== */
+    ratingStats: {
+      averageRating: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 5,
+      },
+      totalRatings: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      totalReviews: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      // Dimension averages
+      avgCommunication: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 5,
+      },
+      avgQuality: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 5,
+      },
+      avgProfessionalism: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 5,
+      },
+      avgTimeliness: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 5,
+      },
     },
   },
   { timestamps: true }

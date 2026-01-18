@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api';
+import ProfileRatings from '../components/ProfileRatings'; // ✅ NEW IMPORT
 
 function Profile() {
   const [user, setUser] = useState(null);
@@ -93,6 +94,11 @@ function Profile() {
           </div>
         </div>
       </div>
+
+      {/* ✅ NEW: Ratings & Reviews Section */}
+      {user.role !== 'admin' && (
+        <ProfileRatings userId={user._id} />
+      )}
     </div>
   );
 }
