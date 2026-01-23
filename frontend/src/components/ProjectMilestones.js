@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api';
 import '../styles/ProjectMilestones.css';
+import MilestonePayment from './MilestonePayment';
 
 const ProjectMilestones = ({ projectId, userRole }) => {
   const [milestones, setMilestones] = useState([]);
@@ -20,19 +21,19 @@ const ProjectMilestones = ({ projectId, userRole }) => {
       const response = await api.get(`/api/milestones/project/${projectId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       // Handle different response structures
       console.log('Milestone API Response:', response.data);
-      
+
       let milestonesArray = response.data;
-      
+
       // If response is wrapped in an object, extract the array
       if (response.data.milestones) {
         milestonesArray = response.data.milestones;
       } else if (response.data.data) {
         milestonesArray = response.data.data;
       }
-      
+
       // Check if it's an array
       if (!Array.isArray(milestonesArray)) {
         console.error('Expected array but got:', milestonesArray);
@@ -40,7 +41,7 @@ const ProjectMilestones = ({ projectId, userRole }) => {
         setMilestones([]);
         return;
       }
-      
+
       // Sort by order
       const sortedMilestones = milestonesArray.sort((a, b) => a.order - b.order);
       setMilestones(sortedMilestones);
@@ -83,25 +84,35 @@ const ProjectMilestones = ({ projectId, userRole }) => {
 
   const handleStatusChange = async (milestoneId, newStatus) => {
     try {
-      await api.put(
-        `/api/milestones/${milestoneId}`,
-        { status: newStatus },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      // If approving, also release payment
+      if (newStatus === 'approved') {
+        // First release payment
+        await api.post(
+          `/api/payments/release/${milestoneId}`,
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
 
-      // Update local state
-      setMilestones((prev) =>
-        prev.map((m) => (m._id === milestoneId ? { ...m, status: newStatus } : m))
-      );
+        alert('Milestone approved! Payment released to freelancer.');
+      } else {
+        // Regular status update
+        await api.put(
+          `/api/milestones/${milestoneId}`,
+          { status: newStatus },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
 
-      alert(`Milestone marked as ${newStatus}`);
+        alert(`Milestone marked as ${newStatus}`);
+      }
+
+      // Refresh milestones
+      fetchMilestones();
     } catch (err) {
       console.error('Error updating status:', err);
       alert(err.response?.data?.message || 'Failed to update status');
     }
   };
+
 
   const getStatusBadgeClass = (status) => {
     const statusClasses = {
@@ -181,9 +192,8 @@ const ProjectMilestones = ({ projectId, userRole }) => {
         {milestones.map((milestone, index) => (
           <div
             key={milestone._id}
-            className={`milestone-card ${
-              currentMilestone?._id === milestone._id ? 'current-milestone' : ''
-            }`}
+            className={`milestone-card ${currentMilestone?._id === milestone._id ? 'current-milestone' : ''
+              }`}
           >
             {/* Milestone Header */}
             <div className="milestone-header">
@@ -224,40 +234,40 @@ const ProjectMilestones = ({ projectId, userRole }) => {
                 {/* Progress Slider */}
                 {(milestone.status === 'in-progress' ||
                   milestone.status === 'funded') && (
-                  <div className="progress-update-section">
-                    <label htmlFor={`progress-${milestone._id}`}>
-                      Update Progress:
-                    </label>
-                    <div className="progress-slider-group">
-                      <input
-                        type="range"
-                        id={`progress-${milestone._id}`}
-                        min="0"
-                        max="100"
-                        step="5"
-                        value={milestone.progress}
-                        onChange={(e) =>
-                          handleProgressUpdate(milestone._id, e.target.value)
-                        }
-                        disabled={updatingProgress[milestone._id]}
-                        className="progress-slider"
-                      />
-                      <input
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={milestone.progress}
-                        onChange={(e) => {
-                          const val = Math.min(100, Math.max(0, e.target.value));
-                          handleProgressUpdate(milestone._id, val);
-                        }}
-                        disabled={updatingProgress[milestone._id]}
-                        className="progress-input"
-                      />
-                      <span>%</span>
+                    <div className="progress-update-section">
+                      <label htmlFor={`progress-${milestone._id}`}>
+                        Update Progress:
+                      </label>
+                      <div className="progress-slider-group">
+                        <input
+                          type="range"
+                          id={`progress-${milestone._id}`}
+                          min="0"
+                          max="100"
+                          step="5"
+                          value={milestone.progress}
+                          onChange={(e) =>
+                            handleProgressUpdate(milestone._id, e.target.value)
+                          }
+                          disabled={updatingProgress[milestone._id]}
+                          className="progress-slider"
+                        />
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={milestone.progress}
+                          onChange={(e) => {
+                            const val = Math.min(100, Math.max(0, e.target.value));
+                            handleProgressUpdate(milestone._id, val);
+                          }}
+                          disabled={updatingProgress[milestone._id]}
+                          className="progress-input"
+                        />
+                        <span>%</span>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
                 {/* Action Buttons */}
                 <div className="milestone-actions">
@@ -299,8 +309,18 @@ const ProjectMilestones = ({ projectId, userRole }) => {
             )}
 
             {/* Client Controls */}
+            {/* Client Controls */}
             {userRole === 'client' && (
               <div className="milestone-controls">
+                {/* Payment Button */}
+                {milestone.payment.status === 'pending' && milestone.status === 'pending' && (
+                  <MilestonePayment
+                    milestone={milestone}
+                    onPaymentSuccess={fetchMilestones}
+                  />
+                )}
+
+                {/* Review Actions */}
                 {milestone.status === 'submitted' && (
                   <div className="client-review-actions">
                     <button
@@ -325,8 +345,21 @@ const ProjectMilestones = ({ projectId, userRole }) => {
                     </button>
                   </div>
                 )}
+
+                {/* Payment Status Display */}
+                {milestone.payment.status !== 'pending' && (
+                  <div style={{ marginTop: '10px', padding: '10px', background: '#f0f9ff', borderRadius: '6px' }}>
+                    <strong>Payment Status:</strong>{' '}
+                    <span style={{ color: milestone.payment.status === 'released' ? '#16a34a' : '#2563eb' }}>
+                      {milestone.payment.status === 'paid' && '💰 In Escrow'}
+                      {milestone.payment.status === 'released' && '✅ Released to Freelancer'}
+                      {milestone.payment.status === 'refunded' && '↩️ Refunded'}
+                    </span>
+                  </div>
+                )}
               </div>
             )}
+
 
             {/* Dates */}
             <div className="milestone-dates">

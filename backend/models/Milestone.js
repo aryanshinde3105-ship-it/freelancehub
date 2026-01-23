@@ -8,32 +8,28 @@ const milestoneSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
-    
     title: {
       type: String,
       required: true,
       trim: true,
       maxlength: 100,
     },
-    
     description: {
       type: String,
       required: true,
       maxlength: 500,
     },
-    
     amount: {
       type: Number,
       required: true,
       min: 0,
     },
-    
     order: {
       type: Number,
       required: true,
       default: 1,
     },
-    
+
     // Status tracking
     status: {
       type: String,
@@ -49,7 +45,7 @@ const milestoneSchema = new mongoose.Schema(
       ],
       default: 'pending',
     },
-    
+
     // Progress tracking (0-100)
     progress: {
       type: Number,
@@ -57,7 +53,7 @@ const milestoneSchema = new mongoose.Schema(
       max: 100,
       default: 0,
     },
-    
+
     // Deliverables
     deliverables: [
       {
@@ -70,11 +66,12 @@ const milestoneSchema = new mongoose.Schema(
         },
       },
     ],
-    
-    // Payment tracking
+
+    // Razorpay payment tracking
     payment: {
-      stripePaymentIntentId: String,
-      stripePaymentStatus: String,
+      razorpayOrderId: String,
+      razorpayPaymentId: String,
+      razorpaySignature: String,
       paidAt: Date,
       releasedAt: Date,
       refundedAt: Date,
@@ -84,13 +81,13 @@ const milestoneSchema = new mongoose.Schema(
         default: 'pending',
       },
     },
-    
+
     // Timestamps for workflow
     startedAt: Date,
     submittedAt: Date,
     reviewedAt: Date,
     completedAt: Date,
-    
+
     // Feedback
     submissionNotes: String,
     clientFeedback: String,

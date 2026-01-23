@@ -40,7 +40,8 @@ app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/admin', adminRoutes);
 app.use('/api/ratings', require('./routes/ratingRoutes'));
-app.use('/api/milestones', require('./routes/milestoneRoutes')); // ✅ NEW: Milestone routes
+app.use('/api/milestones', require('./routes/milestoneRoutes'));
+app.use('/api/payments', require('./routes/paymentRoutes'));
 
 /* ✅ Socket.io Configuration */
 const io = socketIO(server, {
