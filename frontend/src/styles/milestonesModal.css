@@ -1,0 +1,74 @@
+/* Milestone Modal Overlay */
+.mh-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 18px;
+}
+
+/* Milestone Modal Container */
+.mh-modal {
+  width: 100%;
+  max-width: 860px;
+  max-height: 88vh;
+  background: #fff;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(15, 23, 42, 0.10);
+}
+
+/* Modal Header */
+.mh-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid #eef2f7;
+  background: #ffffff;
+}
+
+/* Modal Title */
+.mh-modal-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+/* Modal Subtitle */
+.mh-modal-subtitle {
+  margin: 4px 0 0 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+/* Modal Close Button */
+.mh-modal-close {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #0f172a;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.mh-modal-close:hover {
+  background: #f8fafc;
+}
+
+/* Modal Body */
+.mh-modal-body {
+  padding: 14px 16px;
+  overflow: auto;
+  max-height: calc(88vh - 64px);
+}

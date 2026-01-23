@@ -3,11 +3,13 @@ import { Link } from 'react-router-dom';
 import api from '../api';
 import ProjectProgress from '../components/ProjectProgress';
 import RatingForm from '../components/RatingForm';
-
+import ProjectMilestones from '../components/ProjectMilestones';
+import '../styles/milestonesModal.css';
 
 function MyActiveProjects() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [expandedProject, setExpandedProject] = useState(null); // ✅ CHANGED: Now for modal instead of dropdown
 
   // store selected file per projectId
   const [selectedFiles, setSelectedFiles] = useState({});
@@ -65,36 +67,36 @@ function MyActiveProjects() {
       const res = await api.get(`/api/projects/${project._id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      
+
       const fullProject = res.data;
-      
+
       // Get current user info from localStorage
       const userStr = localStorage.getItem('user');
       let currentUserId;
-      
+
       if (userStr) {
         const currentUser = JSON.parse(userStr);
         currentUserId = currentUser.id || currentUser._id;
       }
-      
+
       // If user not in localStorage, decode from token
       if (!currentUserId) {
         const tokenPayload = JSON.parse(atob(token.split('.')[1]));
         currentUserId = tokenPayload.userId || tokenPayload.id;
       }
-      
+
       // Determine who to review
       let reviewedUserId, reviewedUserName;
-      
+
       // Check if clientId is populated object or just ID string
-      const clientId = typeof fullProject.clientId === 'object' 
-        ? fullProject.clientId._id 
+      const clientId = typeof fullProject.clientId === 'object'
+        ? fullProject.clientId._id
         : fullProject.clientId;
-      
+
       const freelancerId = typeof fullProject.assignedFreelancerId === 'object'
         ? fullProject.assignedFreelancerId._id
         : fullProject.assignedFreelancerId;
-      
+
       if (clientId === currentUserId) {
         // Current user is client → review freelancer
         reviewedUserId = freelancerId;
@@ -108,7 +110,7 @@ function MyActiveProjects() {
           ? fullProject.clientId.name
           : 'Client';
       }
-      
+
       // If name is not available, fetch user details
       if (reviewedUserName === 'Freelancer' || reviewedUserName === 'Client') {
         try {
@@ -118,12 +120,12 @@ function MyActiveProjects() {
           console.error('Error fetching user name:', err);
         }
       }
-      
+
       if (!reviewedUserId) {
         alert('Unable to determine user to review');
         return;
       }
-      
+
       setCurrentRatingProject({
         ...project,
         reviewedUserId,
@@ -149,6 +151,16 @@ function MyActiveProjects() {
     if (currentRatingProject) {
       checkCanReview(currentRatingProject._id);
     }
+  };
+
+  // ✅ CHANGED: Now opens modal instead of toggling dropdown
+  const openMilestoneModal = (projectId) => {
+    setExpandedProject(projectId);
+  };
+
+  // ✅ NEW: Close milestone modal
+  const closeMilestoneModal = () => {
+    setExpandedProject(null);
   };
 
   const handleFileChange = (projectId, file) => {
@@ -225,7 +237,7 @@ function MyActiveProjects() {
         <div className="card-grid">
           {projects.map((project) => {
             const reviewStatus = canReviewStatus[project._id];
-            
+
             return (
               <div key={project._id} className="card project-card">
                 {/* HEADER */}
@@ -287,12 +299,12 @@ function MyActiveProjects() {
                   {(project.status === 'in-progress' ||
                     project.status === 'pending-approval' ||
                     project.status === 'completed') && (
-                    <Link to={`/chat/${project._id}`}>
-                      <button className="btn btn-secondary">
-                        Open Chat
-                      </button>
-                    </Link>
-                  )}
+                      <Link to={`/chat/${project._id}`}>
+                        <button className="btn btn-secondary">
+                          Open Chat
+                        </button>
+                      </Link>
+                    )}
 
                   {project.status === 'in-progress' && (
                     <>
@@ -324,12 +336,55 @@ function MyActiveProjects() {
                       ⭐ Leave Review
                     </button>
                   )}
+
+                  {/* ✅ CHANGED: View Milestones Button - Opens Modal */}
+                  {project.paymentType === 'milestone-based' && (
+                    <button
+                      className="btn btn-secondary"
+                      onClick={() => openMilestoneModal(project._id)}
+                      style={{
+                        background: '#667eea',
+                        color: 'white',
+                        border: 'none',
+                        marginTop: '0.5rem',
+                        width: '100%',
+                      }}
+                    >
+                      📊 View Milestones
+                    </button>
+                  )}
                 </div>
               </div>
             );
           })}
         </div>
       )}
+
+      {/* ✅ NEW: MILESTONES MODAL */}
+      {expandedProject && (
+        <div className="mh-modal-overlay" onClick={closeMilestoneModal}>
+          <div className="mh-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="mh-modal-header">
+              <div>
+                <h2 className="mh-modal-title">Project milestones</h2>
+                <p className="mh-modal-subtitle">
+                  {projects.find((p) => p._id === expandedProject)?.title}
+                </p>
+              </div>
+
+              <button className="mh-modal-close" onClick={closeMilestoneModal}>
+                ×
+              </button>
+            </div>
+
+            <div className="mh-modal-body">
+              <ProjectMilestones projectId={expandedProject} userRole="freelancer" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ✅ END MILESTONES MODAL */}
     </div>
   );
 }

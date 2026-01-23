@@ -1,0 +1,437 @@
+/* Project Milestones Container */
+.project-milestones-container {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+}
+
+/* Overview Section */
+.milestones-overview {
+  box-shadow: none;
+  border: 1px solid #eef2f7;
+  padding: 14px;
+  margin-bottom: 12px;
+  background: white;
+  border-radius: 8px;
+}
+
+.milestones-overview h3 {
+  font-size: 14px;
+  margin: 0 0 10px 0;
+  color: #0f172a;
+}
+
+.overview-stats {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.stat-label {
+  font-size: 0.9em;
+  color: #666;
+}
+
+.stat-value {
+  font-size: 1.3em;
+  font-weight: bold;
+  color: #333;
+}
+
+.stat-completed {
+  color: #28a745;
+}
+
+/* Current Milestone Highlight */
+.current-milestone-highlight {
+  background: #f8fafc;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
+  padding: 12px 14px;
+  margin-bottom: 12px;
+  border-radius: 8px;
+}
+
+.current-milestone-highlight h4 {
+  margin: 0 0 8px 0;
+  font-size: 1em;
+}
+
+.current-milestone-highlight .milestone-title {
+  margin: 6px 0 0 0;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.current-milestone-highlight .milestone-amount {
+  margin: 6px 0 0 0;
+  font-size: 14px;
+  color: #2563eb;
+  font-weight: 700;
+}
+
+/* Milestones List */
+.milestones-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Milestone Card */
+.milestone-card {
+  border: 1px solid #e2e8f0;
+  padding: 14px;
+  background: white;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.milestone-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.milestone-card.current-milestone {
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.1);
+}
+
+/* Milestone Header */
+.milestone-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+/* ✅ UPDATED: Clean circular badge */
+.milestone-number {
+  width: 36px;
+  height: 36px;
+  background: #2563eb;
+  border-radius: 50%;
+  color: white;
+  font-size: 14px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.milestone-info {
+  flex: 1;
+}
+
+.milestone-info h4 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 1.1em;
+}
+
+.milestone-description {
+  color: #666;
+  font-size: 0.95em;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.milestone-amount-badge {
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 14px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+/* Status Row */
+.milestone-status-row {
+  margin-bottom: 15px;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85em;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.status-pending {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-funded {
+  background: #d1ecf1;
+  color: #0c5460;
+}
+
+.status-in-progress {
+  background: #cce5ff;
+  color: #004085;
+}
+
+.status-submitted {
+  background: #d4edda;
+  color: #155724;
+}
+
+.status-under-review {
+  background: #fff3cd;
+  color: #856404;
+}
+
+.status-approved {
+  background: #28a745;
+  color: white;
+}
+
+.status-rejected {
+  background: #dc3545;
+  color: white;
+}
+
+.status-revision {
+  background: #ffeaa7;
+  color: #d63031;
+}
+
+/* Progress Section */
+.milestone-progress-section {
+  margin: 15px 0;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.progress-percentage {
+  font-weight: bold;
+  color: #333;
+}
+
+.progress-bar-container {
+  height: 10px;
+  background: #e0e0e0;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  transition: width 0.3s ease;
+  border-radius: 10px;
+}
+
+/* Controls Section */
+.milestone-controls {
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Progress Update */
+.progress-update-section {
+  margin-bottom: 15px;
+}
+
+.progress-update-section label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95em;
+}
+
+.progress-slider-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.progress-slider {
+  flex: 1;
+  height: 8px;
+  border-radius: 5px;
+  background: #e0e0e0;
+  outline: none;
+  -webkit-appearance: none;
+}
+
+.progress-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #667eea;
+  cursor: pointer;
+}
+
+.progress-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #667eea;
+  cursor: pointer;
+  border: none;
+}
+
+.progress-input {
+  width: 60px;
+  padding: 6px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  text-align: center;
+  font-size: 0.95em;
+}
+
+/* Action Buttons */
+.milestone-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.milestone-actions button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 0.95em;
+}
+
+.btn-start-work {
+  background: #007bff;
+  color: white;
+}
+
+.btn-start-work:hover {
+  background: #0056b3;
+}
+
+.btn-submit {
+  background: #28a745;
+  color: white;
+}
+
+.btn-submit:hover {
+  background: #218838;
+}
+
+.btn-resubmit {
+  background: #ffc107;
+  color: #333;
+}
+
+.btn-resubmit:hover {
+  background: #e0a800;
+}
+
+/* Client Review Actions */
+.client-review-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.btn-approve {
+  background: #28a745;
+  color: white;
+}
+
+.btn-approve:hover {
+  background: #218838;
+}
+
+.btn-revision {
+  background: #ffc107;
+  color: #333;
+}
+
+.btn-revision:hover {
+  background: #e0a800;
+}
+
+.btn-reject {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-reject:hover {
+  background: #c82333;
+}
+
+/* Dates */
+.milestone-dates {
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.milestone-dates small {
+  color: #999;
+  font-size: 0.85em;
+}
+
+/* Loading & Error States */
+.milestones-loading,
+.milestones-error,
+.no-milestones {
+  padding: 40px;
+  text-align: center;
+  background: white;
+  border-radius: 8px;
+  color: #666;
+}
+
+.milestones-error {
+  color: #dc3545;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .milestone-header {
+    flex-direction: column;
+  }
+
+  .milestone-amount-badge {
+    align-self: flex-start;
+  }
+
+  .overview-stats {
+    flex-direction: column;
+    gap: 15px;
+  }
+
+  .milestone-actions,
+  .client-review-actions {
+    flex-direction: column;
+  }
+
+  .milestone-actions button,
+  .client-review-actions button {
+    width: 100%;
+  }
+}
