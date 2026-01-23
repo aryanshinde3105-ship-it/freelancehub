@@ -1,40 +1,52 @@
+/* ═══════════════════════════════════════════════════════════════
+   POST PROJECT - Using Global Design Tokens
+   ═══════════════════════════════════════════════════════════════ */
+
 .post-project-container {
   max-width: 900px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: var(--space-8);
 }
 
 .post-project-container h2 {
-  color: #1f2937;
-  margin-bottom: 2rem;
+  color: var(--text-primary);
+  margin-bottom: var(--space-8);
+  font-size: var(--text-3xl);
 }
 
 .post-project-form {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: var(--space-8);
 }
 
 .form-section {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  border: var(--border-width) solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-base);
+}
+
+.form-section:hover {
+  box-shadow: var(--shadow-md);
 }
 
 .form-section h3 {
-  margin: 0 0 1.5rem 0;
-  color: #1f2937;
-  font-size: 1.1rem;
-  padding-bottom: 0.75rem;
-  border-bottom: 2px solid #e5e7eb;
+  margin: 0 0 var(--space-6) 0;
+  color: var(--text-primary);
+  font-size: var(--text-lg);
+  padding-bottom: var(--space-3);
+  border-bottom: var(--border-width-thick) solid var(--border-color);
+  font-weight: var(--font-semibold);
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1.25rem;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
 }
 
 .form-group:last-child {
@@ -42,28 +54,36 @@
 }
 
 .form-group label {
-  font-weight: 500;
-  color: #374151;
-  font-size: 0.95rem;
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
 }
 
 .form-group input,
 .form-group textarea,
 .form-group select {
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 1rem;
-  transition: border-color 0.2s;
-  font-family: inherit;
+  padding: var(--space-3);
+  border: var(--border-width-thick) solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--text-base);
+  transition: all var(--transition-base);
+  font-family: var(--font-sans);
+  background: var(--bg-primary);
 }
 
 .form-group input:focus,
 .form-group textarea:focus,
 .form-group select:focus {
   outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-focus);
+  transform: translateY(-1px);
+}
+
+.form-group input:hover,
+.form-group textarea:hover,
+.form-group select:hover {
+  border-color: var(--border-color-hover);
 }
 
 .form-group textarea {
@@ -72,33 +92,27 @@
 }
 
 .form-hint {
-  color: #6b7280;
-  font-size: 0.85rem;
-  margin-top: 0.25rem;
+  color: var(--text-secondary);
+  font-size: var(--text-xs);
+  margin-top: var(--space-1);
 }
 
 .form-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-}
-
-@media (max-width: 640px) {
-  .form-row {
-    grid-template-columns: 1fr;
-  }
+  gap: var(--space-4);
 }
 
 /* Milestones Section */
 .milestones-section {
-  background: #f9fafb;
+  background: var(--bg-secondary);
 }
 
 .section-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-6);
 }
 
 .section-header h3 {
@@ -108,129 +122,165 @@
 }
 
 .btn-add-milestone {
-  padding: 0.5rem 1rem;
-  background: #3b82f6;
-  color: white;
+  padding: var(--space-2) var(--space-4);
+  background: var(--gradient-primary);
+  color: var(--text-inverse);
   border: none;
-  border-radius: 6px;
-  font-weight: 500;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-medium);
   cursor: pointer;
-  transition: background 0.2s;
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-add-milestone:hover {
-  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
 }
 
 .budget-tracker {
   display: flex;
   justify-content: space-around;
-  padding: 1rem;
-  background: white;
-  border-radius: 6px;
-  margin-bottom: 1.5rem;
-  border: 1px solid #e5e7eb;
+  padding: var(--space-4);
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-6);
+  border: var(--border-width) solid var(--border-color);
 }
 
 .budget-info {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--space-1);
   align-items: center;
 }
 
 .budget-info span {
-  font-size: 0.85rem;
-  color: #6b7280;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  font-weight: var(--font-medium);
 }
 
 .budget-info strong {
-  font-size: 1.25rem;
-  color: #1f2937;
+  font-size: var(--text-2xl);
+  color: var(--text-primary);
+  font-weight: var(--font-bold);
 }
 
 .empty-milestones-hint {
   text-align: center;
-  padding: 2rem;
-  background: white;
-  border-radius: 6px;
-  border: 2px dashed #d1d5db;
-  margin-top: 1rem;
+  padding: var(--space-8);
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
+  border: var(--border-width-thick) dashed var(--border-color);
+  margin-top: var(--space-4);
 }
 
 .empty-milestones-hint p {
-  margin: 0.5rem 0;
-  color: #6b7280;
+  margin: var(--space-2) 0;
+  color: var(--text-secondary);
 }
 
 .empty-milestones-hint p:first-child {
-  font-weight: 500;
-  color: #1f2937;
-  font-size: 1rem;
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+  font-size: var(--text-base);
 }
 
 /* Form Actions */
 .form-actions {
   display: flex;
-  gap: 1rem;
+  gap: var(--space-4);
   justify-content: flex-end;
-  padding: 1.5rem;
-  background: white;
-  border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  padding: var(--space-6);
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
+  border: var(--border-width) solid var(--border-color);
 }
 
 .btn-primary,
 .btn-secondary {
-  padding: 0.75rem 2rem;
+  padding: var(--space-3) var(--space-8);
   border: none;
-  border-radius: 6px;
-  font-weight: 500;
-  font-size: 1rem;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-medium);
+  font-size: var(--text-base);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-base);
 }
 
 .btn-primary {
-  background: #3b82f6;
-  color: white;
+  background: var(--gradient-primary);
+  color: var(--text-inverse);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #2563eb;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
 }
 
 .btn-primary:disabled {
-  background: #9ca3af;
+  background: var(--color-gray-400);
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .btn-secondary {
-  background: #e5e7eb;
-  color: #374151;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  border: var(--border-width) solid var(--border-color);
 }
 
 .btn-secondary:hover:not(:disabled) {
-  background: #d1d5db;
+  background: var(--bg-secondary);
+  border-color: var(--border-color-hover);
 }
 
 /* Message */
 .message {
-  margin-top: 1.5rem;
-  padding: 1rem;
-  border-radius: 6px;
+  margin-top: var(--space-6);
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
   text-align: center;
-  font-weight: 500;
+  font-weight: var(--font-medium);
+  animation: slideUp var(--transition-base);
 }
 
 .message.success {
-  background: #d1fae5;
+  background: var(--color-success-light);
   color: #065f46;
-  border: 1px solid #6ee7b7;
+  border: var(--border-width) solid var(--color-success);
 }
 
 .message.error {
-  background: #fee2e2;
+  background: var(--color-danger-light);
   color: #991b1b;
-  border: 1px solid #fca5a5;
+  border: var(--border-width) solid var(--color-danger);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .post-project-container {
+    padding: var(--space-4);
+  }
+
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .form-actions {
+    flex-direction: column;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+  }
 }

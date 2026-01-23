@@ -1,77 +1,156 @@
-/* =========================
-   Modern Design Tokens (2026)
-========================= */
+/* ═══════════════════════════════════════════════════════════════
+   🎨 FREELANCEHUB DESIGN SYSTEM
+   Modern SaaS Aesthetic - January 2026
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════
+   1. CSS VARIABLES (DESIGN TOKENS)
+   ═══════════════════════════════════════════════════════════════ */
 
 :root {
-  /* Background gradients */
-  --bg-main: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --bg-overlay: rgba(255, 255, 255, 0.97);
-  --bg-card: rgba(255, 255, 255, 0.95);
-  --bg-card-hover: rgba(255, 255, 255, 1);
-
-  /* Glass effect */
-  --glass-bg: rgba(255, 255, 255, 0.1);
-  --glass-border: rgba(255, 255, 255, 0.2);
-
-  /* Text colors */
+  /* 🎨 Brand Colors */
+  --color-primary: #667eea;
+  --color-primary-hover: #5a67d8;
+  --color-primary-dark: #4c51bf;
+  
+  /* ✅ Semantic Colors */
+  --color-success: #10b981;
+  --color-success-hover: #059669;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+  --color-info: #3b82f6;
+  
+  /* 🎭 Neutral/Gray Scale */
+  --color-gray-50: #f9fafb;
+  --color-gray-100: #f3f4f6;
+  --color-gray-200: #e5e7eb;
+  --color-gray-300: #d1d5db;
+  --color-gray-400: #9ca3af;
+  --color-gray-500: #6b7280;
+  --color-gray-600: #4b5563;
+  --color-gray-700: #374151;
+  --color-gray-800: #1f2937;
+  --color-gray-900: #111827;
+  
+  /* 📝 Text Colors */
   --text-primary: #1a202c;
   --text-secondary: #718096;
-  --text-muted: #a0aec0;
-
-  /* Brand colors with gradients */
-  --primary: #667eea;
-  --primary-hover: #5a67d8;
-  --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --accent-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-
-  /* Borders */
-  --border-light: #e2e8f0;
+  --text-tertiary: #a0aec0;
+  --text-inverse: #ffffff;
+  
+  /* 🎨 Background Colors */
+  --bg-main: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --bg-overlay: rgba(255, 255, 255, 0.97);
+  --bg-primary: #ffffff;
+  --bg-secondary: #f9fafb;
+  --bg-tertiary: #f3f4f6;
+  --bg-card: rgba(255, 255, 255, 0.95);
+  --bg-card-hover: rgba(255, 255, 255, 1);
+  
+  /* 🌈 Gradients */
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-secondary: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+  --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  --gradient-accent: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  
+  /* 🔲 Borders */
+  --border-width: 1px;
+  --border-width-thick: 2px;
+  --border-color: #e2e8f0;
+  --border-color-hover: #cbd5e0;
   --border-focus: rgba(102, 126, 234, 0.3);
-
-  /* Border radius */
+  
+  /* ⭕ Border Radius */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 24px;
-
-  /* Shadows - Modern depth */
+  --radius-full: 9999px;
+  
+  /* 🌑 Shadows (Elevation) */
+  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.1);
   --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+  --shadow-focus: 0 0 0 3px rgba(102, 126, 234, 0.2);
   --shadow-glow: 0 0 20px rgba(102, 126, 234, 0.3);
   --shadow-hover: 0 12px 32px rgba(0, 0, 0, 0.12);
-
-  /* Animation timing */
+  
+  /* 📏 Spacing Scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  
+  /* 📐 Font */
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'SF Mono', Monaco, 'Courier New', monospace;
+  
+  /* 📏 Font Sizes */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-base: 16px;
+  --text-lg: 18px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --text-3xl: 30px;
+  --text-4xl: 36px;
+  
+  /* ⚖️ Font Weights */
+  --font-normal: 400;
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+  
+  /* ⏱️ Transitions */
   --transition-fast: 0.15s ease;
   --transition-base: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* 📐 Z-Index */
+  --z-dropdown: 10;
+  --z-sticky: 20;
+  --z-fixed: 30;
+  --z-modal-backdrop: 40;
+  --z-modal: 50;
 }
 
-/* =========================
-   Base Styles with Animation
-========================= */
+/* ═══════════════════════════════════════════════════════════════
+   2. BASE & RESET
+   ═══════════════════════════════════════════════════════════════ */
 
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
 }
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI',
-    Roboto, Oxygen, Ubuntu, Cantarell, 'Inter', 'Open Sans',
-    'Helvetica Neue', sans-serif;
-
-  background: var(--bg-main);
-  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
   line-height: 1.6;
+  color: var(--text-primary);
+  background: var(--bg-main);
   overflow-x: hidden;
-  
-  /* Smooth scroll */
-  scroll-behavior: smooth;
 }
 
-/* Animated background overlay */
 body::before {
   content: '';
   position: fixed;
@@ -84,9 +163,56 @@ body::before {
   animation: fadeIn 0.6s ease;
 }
 
-/* =========================
-   Layout with Entrance Animation
-========================= */
+/* ═══════════════════════════════════════════════════════════════
+   3. TYPOGRAPHY
+   ═══════════════════════════════════════════════════════════════ */
+
+h1, h2, h3, h4, h5, h6 {
+  margin: 0;
+  font-weight: var(--font-bold);
+  letter-spacing: -0.02em;
+  color: var(--text-primary);
+}
+
+h1 { font-size: var(--text-4xl); }
+h2 { font-size: var(--text-3xl); }
+h3 { font-size: var(--text-2xl); }
+h4 { font-size: var(--text-xl); }
+h5 { font-size: var(--text-lg); }
+h6 { font-size: var(--text-base); }
+
+h2 {
+  margin-bottom: 1.5rem;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: slideUp 0.4s ease;
+}
+
+p {
+  margin: 0;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-primary-hover);
+}
+
+strong {
+  font-weight: var(--font-semibold);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   4. LAYOUT
+   ═══════════════════════════════════════════════════════════════ */
 
 .app-container {
   max-width: 1100px;
@@ -95,41 +221,18 @@ body::before {
   animation: slideUp 0.5s ease;
 }
 
-/* =========================
-   Typography with Smooth Rendering
-========================= */
-
-h1, h2, h3, h4 {
-  margin-top: 0;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-}
-
-h2 {
-  margin-bottom: 1.5rem;
-  background: var(--primary-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: slideUp 0.4s ease;
-}
-
-p {
-  color: var(--text-secondary);
-}
-
-/* =========================
-   Modern Cards with Glassmorphism
-========================= */
+/* ═══════════════════════════════════════════════════════════════
+   5. CARDS
+   ═══════════════════════════════════════════════════════════════ */
 
 .card {
   background: var(--bg-card);
-  -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-radius: var(--radius-lg);
   padding: 1.5rem 1.75rem;
   box-shadow: var(--shadow-md);
-  border: 1px solid var(--border-light);
+  border: 1px solid var(--border-color);
   margin-bottom: 1.5rem;
   transition: all var(--transition-base);
   animation: fadeIn 0.5s ease;
@@ -159,11 +262,58 @@ p {
   left: 100%;
 }
 
-/* =========================
-   Modern Buttons with Glow Effect
-========================= */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
 
-button, .btn {
+.project-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  animation: fadeInUp 0.5s ease backwards;
+}
+
+.project-card:nth-child(1) { animation-delay: 0.1s; }
+.project-card:nth-child(2) { animation-delay: 0.2s; }
+.project-card:nth-child(3) { animation-delay: 0.3s; }
+.project-card:nth-child(4) { animation-delay: 0.4s; }
+.project-card:nth-child(5) { animation-delay: 0.5s; }
+.project-card:nth-child(6) { animation-delay: 0.6s; }
+
+.project-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.project-card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.project-card-body {
+  margin-top: 1rem;
+  flex-grow: 1;
+}
+
+.project-card-actions {
+  margin-top: 1.25rem;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   6. BUTTONS
+   ═══════════════════════════════════════════════════════════════ */
+
+button,
+.btn {
   appearance: none;
   border: none;
   border-radius: var(--radius-md);
@@ -175,10 +325,11 @@ button, .btn {
   position: relative;
   overflow: hidden;
   text-decoration: none;
+  display: inline-block;
 }
 
 .btn-primary {
-  background: var(--primary-gradient);
+  background: var(--gradient-primary);
   color: #fff;
   box-shadow: var(--shadow-sm);
 }
@@ -194,7 +345,7 @@ button, .btn {
 
 .btn-secondary {
   background: rgba(102, 126, 234, 0.1);
-  color: var(--primary);
+  color: var(--color-primary);
   border: 1px solid rgba(102, 126, 234, 0.2);
 }
 
@@ -204,7 +355,8 @@ button, .btn {
   box-shadow: var(--shadow-sm);
 }
 
-button:disabled {
+button:disabled,
+.btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none !important;
@@ -229,54 +381,49 @@ button:disabled {
   height: 300px;
 }
 
-/* =========================
-   Modern Inputs with Focus Effects
-========================= */
+/* ═══════════════════════════════════════════════════════════════
+   7. INPUTS
+   ═══════════════════════════════════════════════════════════════ */
 
-input, textarea, select {
+input,
+textarea,
+select {
   width: 100%;
   padding: 0.7rem 0.9rem;
   border-radius: var(--radius-md);
-  border: 2px solid var(--border-light);
+  border: 2px solid var(--border-color);
   font-size: 0.95rem;
   outline: none;
   transition: all var(--transition-base);
   background: rgba(255, 255, 255, 0.9);
+  font-family: var(--font-sans);
 }
 
-input:focus, textarea:focus, select:focus {
-  border-color: var(--primary);
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 4px var(--border-focus);
   background: #ffffff;
   transform: translateY(-1px);
 }
 
-input:hover, textarea:hover, select:hover {
+input:hover,
+textarea:hover,
+select:hover {
   border-color: rgba(102, 126, 234, 0.4);
 }
 
-/* =========================
-   Utilities
-========================= */
-
-.text-center {
-  text-align: center;
-}
-
-.mt-1 { margin-top: 0.5rem; }
-.mt-2 { margin-top: 1rem; }
-.mt-3 { margin-top: 1.5rem; }
-
-/* =========================
-   Animated Status Badges
-========================= */
+/* ═══════════════════════════════════════════════════════════════
+   8. BADGES
+   ═══════════════════════════════════════════════════════════════ */
 
 .badge {
   display: inline-block;
   padding: 0.35rem 0.8rem;
   font-size: 0.75rem;
   font-weight: 600;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   text-transform: capitalize;
   animation: bounceIn 0.4s ease;
   transition: all var(--transition-fast);
@@ -311,174 +458,47 @@ input:hover, textarea:hover, select:hover {
   box-shadow: 0 2px 8px rgba(132, 250, 176, 0.3);
 }
 
-/* =========================
-   Modern Chat UI
-========================= */
+/* ═══════════════════════════════════════════════════════════════
+   9. MODALS
+   ═══════════════════════════════════════════════════════════════ */
 
-.chat-container {
-  height: 420px;
-  overflow-y: auto;
-  padding: 1rem;
-  background: rgba(249, 250, 251, 0.5);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: var(--z-modal-backdrop);
+  padding: 20px;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.modal-content {
+  background: white;
   border-radius: var(--radius-lg);
-  border: 1px solid var(--border-light);
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-  scroll-behavior: smooth;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-2xl);
+  animation: slideUp 0.3s ease-out;
 }
 
-.chat-container::-webkit-scrollbar {
-  width: 6px;
-}
-
-.chat-container::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.chat-container::-webkit-scrollbar-thumb {
-  background: var(--primary);
-  border-radius: 999px;
-}
-
-.chat-message {
-  display: inline-block;
-  max-width: 70%;
-  width: fit-content;
-  padding: 0.7rem 1rem;
-  border-radius: 16px;
-  font-size: 0.9rem;
-  line-height: 1.5;
-  word-wrap: break-word;
-  animation: slideInMessage 0.3s ease;
-  transition: all var(--transition-fast);
-}
-
-.chat-message:hover {
-  transform: scale(1.02);
-}
-
-.chat-message.me {
-  align-self: flex-end;
-  background: var(--primary-gradient);
-  color: #fff;
-  border-bottom-right-radius: 4px;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-}
-
-.chat-message.other {
-  align-self: flex-start;
-  background: #ffffff;
-  border: 1px solid var(--border-light);
-  color: var(--text-primary);
-  border-bottom-left-radius: 4px;
-  box-shadow: var(--shadow-sm);
-}
-
-.chat-sender {
-  font-size: 0.7rem;
-  font-weight: 600;
-  margin-bottom: 0.2rem;
-  opacity: 0.7;
-}
-
-/* =========================
-   Empty States with Animation
-========================= */
-
-.empty-state {
-  text-align: center;
-  padding: 3rem 2rem;
-  -webkit-backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.6);
-  backdrop-filter: blur(10px);
-  border: 2px dashed var(--border-light);
-  border-radius: var(--radius-xl);
-  color: var(--text-secondary);
-  animation: fadeIn 0.6s ease;
-}
-
-.empty-state h3 {
-  margin-bottom: 0.5rem;
-  color: var(--text-primary);
-  background: var(--primary-gradient);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.empty-state p {
-  margin-bottom: 1.5rem;
-}
-
-.empty-state .btn {
-  margin-top: 0.5rem;
-}
-
-/* =========================
-   Project Card Grid with Stagger
-========================= */
-
-.card-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1.5rem;
-}
-
-.project-card {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  animation: fadeInUp 0.5s ease backwards;
-}
-
-/* Stagger animation */
-.project-card:nth-child(1) { animation-delay: 0.1s; }
-.project-card:nth-child(2) { animation-delay: 0.2s; }
-.project-card:nth-child(3) { animation-delay: 0.3s; }
-.project-card:nth-child(4) { animation-delay: 0.4s; }
-.project-card:nth-child(5) { animation-delay: 0.5s; }
-.project-card:nth-child(6) { animation-delay: 0.6s; }
-
-.project-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 0.5rem;
-}
-
-.project-card-title {
-  font-size: 1.1rem;
-  font-weight: 600;
-  margin: 0;
-  color: var(--text-primary);
-}
-
-.project-card-body {
-  margin-top: 1rem;
-  flex-grow: 1;
-}
-
-.project-card-actions {
-  margin-top: 1.25rem;
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-/* =========================
-   Modern Navbar with Glass Effect
-========================= */
+/* ═══════════════════════════════════════════════════════════════
+   10. NAVBAR
+   ═══════════════════════════════════════════════════════════════ */
 
 .navbar {
   position: sticky;
   top: 0;
-  z-index: 50;
+  z-index: var(--z-sticky);
   background: rgba(255, 255, 255, 0.9);
-  -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid rgba(226, 232, 240, 0.6);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
   animation: slideDown 0.4s ease;
@@ -497,7 +517,7 @@ input:hover, textarea:hover, select:hover {
 .navbar-brand {
   font-size: 1.3rem;
   font-weight: 700;
-  background: var(--primary-gradient);
+  background: var(--gradient-primary);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -525,7 +545,7 @@ input:hover, textarea:hover, select:hover {
 }
 
 .navbar-links a:hover {
-  color: var(--primary);
+  color: var(--color-primary);
 }
 
 .navbar-links a::after {
@@ -535,9 +555,9 @@ input:hover, textarea:hover, select:hover {
   bottom: 0;
   width: 0;
   height: 2px;
-  background: var(--primary-gradient);
+  background: var(--gradient-primary);
   transition: width var(--transition-base);
-  border-radius: 999px;
+  border-radius: var(--radius-full);
 }
 
 .navbar-links a:hover::after {
@@ -549,9 +569,115 @@ input:hover, textarea:hover, select:hover {
   gap: 0.75rem;
 }
 
-/* =========================
-   Profile Page
-========================= */
+/* ═══════════════════════════════════════════════════════════════
+   11. CHAT UI
+   ═══════════════════════════════════════════════════════════════ */
+
+.chat-container {
+  height: 420px;
+  overflow-y: auto;
+  padding: 1rem;
+  background: rgba(249, 250, 251, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  scroll-behavior: smooth;
+}
+
+.chat-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.chat-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.chat-container::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: var(--radius-full);
+}
+
+.chat-message {
+  display: inline-block;
+  max-width: 70%;
+  width: fit-content;
+  padding: 0.7rem 1rem;
+  border-radius: 16px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  word-wrap: break-word;
+  animation: slideInMessage 0.3s ease;
+  transition: all var(--transition-fast);
+}
+
+.chat-message:hover {
+  transform: scale(1.02);
+}
+
+.chat-message.me {
+  align-self: flex-end;
+  background: var(--gradient-primary);
+  color: #fff;
+  border-bottom-right-radius: 4px;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.chat-message.other {
+  align-self: flex-start;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  border-bottom-left-radius: 4px;
+  box-shadow: var(--shadow-sm);
+}
+
+.chat-sender {
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-bottom: 0.2rem;
+  opacity: 0.7;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   12. EMPTY STATES
+   ═══════════════════════════════════════════════════════════════ */
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.6);
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-xl);
+  color: var(--text-secondary);
+  animation: fadeIn 0.6s ease;
+}
+
+.empty-state h3 {
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.empty-state p {
+  margin-bottom: 1.5rem;
+}
+
+.empty-state .btn {
+  margin-top: 0.5rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   13. PROFILE
+   ═══════════════════════════════════════════════════════════════ */
 
 .profile-header {
   display: flex;
@@ -564,7 +690,7 @@ input:hover, textarea:hover, select:hover {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  background: var(--primary-gradient);
+  background: var(--gradient-primary);
   color: #fff;
   display: flex;
   align-items: center;
@@ -612,23 +738,36 @@ input:hover, textarea:hover, select:hover {
 
 .profile-hint {
   background: rgba(248, 250, 252, 0.8);
-  border: 1px dashed var(--border-light);
+  border: 1px dashed var(--border-color);
   animation: fadeIn 0.6s ease;
 }
 
-/* =========================
-   Form Interaction
-========================= */
+/* ═══════════════════════════════════════════════════════════════
+   14. UTILITY CLASSES
+   ═══════════════════════════════════════════════════════════════ */
 
-in-webkit-user-select: text !important;
-  put, textarea, select {
-  pointer-events: auto !important;
-  user-select: text !important;
+.text-center {
+  text-align: center;
 }
 
-/* =========================
-   Keyframe Animations
-========================= */
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mt-4 { margin-top: 2rem; }
+
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+.mb-3 { margin-bottom: 1.5rem; }
+
+.activity-item-hover:hover {
+  background-color: rgba(102, 126, 234, 0.05);
+  border-color: rgba(102, 126, 234, 0.3);
+  transform: translateX(4px);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   15. ANIMATIONS
+   ═══════════════════════════════════════════════════════════════ */
 
 @keyframes fadeIn {
   from {
@@ -706,10 +845,6 @@ in-webkit-user-select: text !important;
   }
 }
 
-/* =========================
-   Loading Skeleton
-========================= */
-
 .skeleton {
   background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
   background-size: 200% 100%;
@@ -726,9 +861,9 @@ in-webkit-user-select: text !important;
   }
 }
 
-/* =========================
-   Mobile Responsiveness
-========================= */
+/* ═══════════════════════════════════════════════════════════════
+   16. RESPONSIVE
+   ═══════════════════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
   .navbar-inner {
@@ -756,79 +891,28 @@ in-webkit-user-select: text !important;
     height: 64px;
     font-size: 1.3rem;
   }
+  
+  :root {
+    --text-4xl: 28px;
+    --text-3xl: 24px;
+  }
 }
 
-/* =========================
-   Accessibility - Reduced Motion
-========================= */
+/* ═══════════════════════════════════════════════════════════════
+   17. ACCESSIBILITY
+   ═══════════════════════════════════════════════════════════════ */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }
-/* =========================
-   Dashboard Activity Hover
-========================= */
 
-.activity-item-hover:hover {
-  background-color: rgba(102, 126, 234, 0.05);
-  border-color: rgba(102, 126, 234, 0.3);
-  transform: translateX(4px);
-}
-/* =====================================================
-   MODAL STYLES FOR RATING FORM
-===================================================== */
-
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-  padding: 20px;
-  animation: fadeIn 0.2s ease-in-out;
-}
-
-.modal-content {
-  background: white;
-  border-radius: 8px;
-  max-width: 600px;
-  width: 100%;
-  max-height: 90vh;
-  overflow-y: auto;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-  animation: slideUp 0.3s ease-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideUp {
-  from {
-    transform: translateY(20px);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-/* Utility class */
-.mt-1 {
-  margin-top: 0.5rem;
+*:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }

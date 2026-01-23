@@ -1,132 +1,176 @@
+/* ═══════════════════════════════════════════════════════════════
+   MILESTONE PROGRESS - Using Global Design Tokens
+   ═══════════════════════════════════════════════════════════════ */
+
 .milestone-progress-container {
-  background: white;
-  border-radius: 8px;
-  padding: 1.5rem;
-  border: 1px solid #e5e7eb;
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+  border: var(--border-width) solid var(--border-color);
+  box-shadow: var(--shadow-sm);
 }
 
 .overall-progress-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
 }
 
 .overall-progress-header h4 {
   margin: 0;
-  color: #1f2937;
+  color: var(--text-primary);
+  font-size: var(--text-xl);
+  font-weight: var(--font-semibold);
 }
 
 .overall-percentage {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: #3b82f6;
+  font-size: var(--text-3xl);
+  font-weight: var(--font-bold);
+  color: var(--color-primary);
 }
 
 .overall-progress-bar {
   height: 12px;
-  background: #e5e7eb;
-  border-radius: 6px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-md);
   overflow: hidden;
-  margin-bottom: 1.5rem;
+  margin-bottom: var(--space-6);
+  box-shadow: var(--shadow-inner);
 }
 
 .overall-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 100%);
+  background: var(--gradient-primary);
   transition: width 0.5s ease;
-  border-radius: 6px;
+  border-radius: var(--radius-md);
 }
 
 .progress-stats {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
-  margin-bottom: 1.5rem;
-  padding: 1rem;
-  background: #f9fafb;
-  border-radius: 6px;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+  padding: var(--space-4);
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
 }
 
 .stat {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: var(--space-1);
   text-align: center;
 }
 
 .stat-label {
-  font-size: 0.85rem;
-  color: #6b7280;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: var(--font-medium);
 }
 
 .stat-value {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #1f2937;
+  font-size: var(--text-2xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
 }
 
 .milestone-timeline {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .timeline-item {
   display: flex;
-  gap: 1rem;
+  gap: var(--space-4);
   align-items: flex-start;
 }
 
 .timeline-dot {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 0.85rem;
+  font-weight: var(--font-bold);
+  font-size: var(--text-xs);
   flex-shrink: 0;
+  transition: all var(--transition-base);
 }
 
 .timeline-dot.completed {
-  background: #10b981;
-  color: white;
+  background: var(--gradient-success);
+  color: var(--text-inverse);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
 }
 
 .timeline-dot.active {
-  background: #3b82f6;
-  color: white;
+  background: var(--gradient-primary);
+  color: var(--text-inverse);
   animation: pulse 2s infinite;
 }
 
 .timeline-dot.pending {
-  background: #e5e7eb;
-  color: #9ca3af;
+  background: var(--bg-tertiary);
+  color: var(--text-tertiary);
+  border: var(--border-width-thick) solid var(--border-color);
 }
 
 @keyframes pulse {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+    box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.7);
   }
   50% {
-    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+    box-shadow: 0 0 0 10px rgba(79, 70, 229, 0);
   }
 }
 
 .timeline-content {
   flex: 1;
-  padding-top: 0.5rem;
+  padding-top: var(--space-2);
 }
 
 .timeline-title {
-  font-weight: 500;
-  color: #1f2937;
-  margin-bottom: 0.25rem;
+  font-weight: var(--font-medium);
+  color: var(--text-primary);
+  margin-bottom: var(--space-1);
+  font-size: var(--text-base);
 }
 
 .timeline-progress {
-  font-size: 0.85rem;
-  color: #6b7280;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .milestone-progress-container {
+    padding: var(--space-4);
+  }
+
+  .overall-percentage {
+    font-size: var(--text-2xl);
+  }
+
+  .progress-stats {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+
+  .stat-value {
+    font-size: var(--text-xl);
+  }
+
+  .timeline-item {
+    gap: var(--space-3);
+  }
+
+  .timeline-dot {
+    width: 32px;
+    height: 32px;
+  }
 }

@@ -1,13 +1,18 @@
+/* ═══════════════════════════════════════════════════════════════
+   MILESTONES MODAL - Using Global Design Tokens
+   ═══════════════════════════════════════════════════════════════ */
+
 /* Milestone Modal Overlay */
 .mh-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.55);
+  background: var(--bg-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 1000;
-  padding: 18px;
+  z-index: var(--z-modal-backdrop);
+  padding: var(--space-4);
+  animation: fadeIn var(--transition-base);
 }
 
 /* Milestone Modal Container */
@@ -15,11 +20,12 @@
   width: 100%;
   max-width: 860px;
   max-height: 88vh;
-  background: #fff;
-  border-radius: 14px;
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
   overflow: hidden;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(15, 23, 42, 0.10);
+  box-shadow: var(--shadow-2xl);
+  border: var(--border-width) solid var(--border-color);
+  animation: slideUp var(--transition-base);
 }
 
 /* Modal Header */
@@ -27,48 +33,86 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 12px;
-  padding: 16px 18px;
-  border-bottom: 1px solid #eef2f7;
-  background: #ffffff;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-bottom: var(--border-width) solid var(--border-color);
+  background: var(--bg-primary);
 }
 
 /* Modal Title */
 .mh-modal-title {
   margin: 0;
-  font-size: 16px;
-  font-weight: 700;
-  color: #0f172a;
+  font-size: var(--text-base);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
 }
 
 /* Modal Subtitle */
 .mh-modal-subtitle {
-  margin: 4px 0 0 0;
-  font-size: 13px;
-  color: #64748b;
+  margin: var(--space-1) 0 0 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
 }
 
 /* Modal Close Button */
 .mh-modal-close {
   width: 34px;
   height: 34px;
-  border-radius: 10px;
-  border: 1px solid #e2e8f0;
-  background: #fff;
-  color: #0f172a;
-  font-size: 20px;
+  border-radius: var(--radius-md);
+  border: var(--border-width) solid var(--border-color);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: var(--text-xl);
   line-height: 1;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: all var(--transition-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .mh-modal-close:hover {
-  background: #f8fafc;
+  background: var(--bg-secondary);
+  border-color: var(--border-color-hover);
+  transform: scale(1.05);
 }
 
 /* Modal Body */
 .mh-modal-body {
-  padding: 14px 16px;
+  padding: var(--space-4);
   overflow: auto;
   max-height: calc(88vh - 64px);
+}
+
+.mh-modal-body::-webkit-scrollbar {
+  width: 6px;
+}
+
+.mh-modal-body::-webkit-scrollbar-track {
+  background: var(--bg-tertiary);
+}
+
+.mh-modal-body::-webkit-scrollbar-thumb {
+  background: var(--color-gray-300);
+  border-radius: var(--radius-sm);
+}
+
+.mh-modal-body::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gray-400);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .mh-modal {
+    max-width: 100%;
+    max-height: 95vh;
+  }
+
+  .mh-modal-header {
+    padding: var(--space-3);
+  }
+
+  .mh-modal-body {
+    padding: var(--space-3);
+  }
 }

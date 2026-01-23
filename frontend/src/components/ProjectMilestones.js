@@ -3,6 +3,47 @@ import api from '../api';
 import '../styles/ProjectMilestones.css';
 import MilestonePayment from './MilestonePayment';
 
+// 🆕 Status Stepper Component for Visual Timeline
+const StatusStepper = ({ currentStatus }) => {
+  const steps = [
+    { key: 'pending', label: 'Created', icon: '📝' },
+    { key: 'funded', label: 'Funded', icon: '💰' },
+    { key: 'in-progress', label: 'In Progress', icon: '⚡' },
+    { key: 'submitted', label: 'Submitted', icon: '📤' },
+    { key: 'approved', label: 'Completed', icon: '✅' },
+  ];
+
+  const statusOrder = ['pending', 'funded', 'in-progress', 'submitted', 'under-review', 'approved'];
+  const currentIndex = statusOrder.indexOf(currentStatus);
+
+  const getStepStatus = (stepIndex) => {
+    if (stepIndex < currentIndex) return 'completed';
+    if (stepIndex === currentIndex) return 'active';
+    return 'upcoming';
+  };
+
+  return (
+    <div className="status-stepper">
+      {steps.map((step, index) => {
+        const stepStatus = getStepStatus(index);
+        return (
+          <React.Fragment key={step.key}>
+            <div className={`step-item ${stepStatus}`}>
+              <div className="step-circle">
+                {stepStatus === 'completed' ? '✓' : step.icon}
+              </div>
+              <span className="step-label">{step.label}</span>
+            </div>
+            {index < steps.length - 1 && (
+              <div className={`step-line ${stepStatus === 'completed' ? 'completed' : ''}`} />
+            )}
+          </React.Fragment>
+        );
+      })}
+    </div>
+  );
+};
+
 const ProjectMilestones = ({ projectId, userRole }) => {
   const [milestones, setMilestones] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -22,19 +63,13 @@ const ProjectMilestones = ({ projectId, userRole }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      // Handle different response structures
-      console.log('Milestone API Response:', response.data);
-
       let milestonesArray = response.data;
-
-      // If response is wrapped in an object, extract the array
       if (response.data.milestones) {
         milestonesArray = response.data.milestones;
       } else if (response.data.data) {
         milestonesArray = response.data.data;
       }
 
-      // Check if it's an array
       if (!Array.isArray(milestonesArray)) {
         console.error('Expected array but got:', milestonesArray);
         setError('Invalid milestone data format');
@@ -42,13 +77,11 @@ const ProjectMilestones = ({ projectId, userRole }) => {
         return;
       }
 
-      // Sort by order
       const sortedMilestones = milestonesArray.sort((a, b) => a.order - b.order);
       setMilestones(sortedMilestones);
       setError('');
     } catch (err) {
       console.error('Error fetching milestones:', err);
-      console.error('Error response:', err.response?.data);
       setError('Failed to load milestones');
     } finally {
       setLoading(false);
@@ -67,7 +100,6 @@ const ProjectMilestones = ({ projectId, userRole }) => {
         }
       );
 
-      // Update local state
       setMilestones((prev) =>
         prev.map((m) =>
           m._id === milestoneId ? { ...m, progress: Number(newProgress) } : m
@@ -84,28 +116,22 @@ const ProjectMilestones = ({ projectId, userRole }) => {
 
   const handleStatusChange = async (milestoneId, newStatus) => {
     try {
-      // If approving, also release payment
       if (newStatus === 'approved') {
-        // First release payment
         await api.post(
           `/api/payments/release/${milestoneId}`,
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
-
-        alert('Milestone approved! Payment released to freelancer.');
+        alert('✅ Milestone approved! Payment released to freelancer.');
       } else {
-        // Regular status update
         await api.put(
           `/api/milestones/${milestoneId}`,
           { status: newStatus },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-
-        alert(`Milestone marked as ${newStatus}`);
+        alert(`Milestone marked as ${newStatus.replace('-', ' ')}`);
       }
 
-      // Refresh milestones
       fetchMilestones();
     } catch (err) {
       console.error('Error updating status:', err);
@@ -113,19 +139,18 @@ const ProjectMilestones = ({ projectId, userRole }) => {
     }
   };
 
-
-  const getStatusBadgeClass = (status) => {
-    const statusClasses = {
-      pending: 'status-pending',
-      funded: 'status-funded',
-      'in-progress': 'status-in-progress',
-      submitted: 'status-submitted',
-      'under-review': 'status-under-review',
-      approved: 'status-approved',
-      rejected: 'status-rejected',
-      'revision-requested': 'status-revision',
+  const getStatusConfig = (status) => {
+    const configs = {
+      pending: { icon: '⏳', label: 'Pending Payment', class: 'status-pending' },
+      funded: { icon: '💰', label: 'Funded', class: 'status-funded' },
+      'in-progress': { icon: '⚡', label: 'In Progress', class: 'status-in-progress' },
+      submitted: { icon: '📤', label: 'Submitted', class: 'status-submitted' },
+      'under-review': { icon: '👀', label: 'Under Review', class: 'status-under-review' },
+      approved: { icon: '✅', label: 'Approved', class: 'status-approved' },
+      rejected: { icon: '❌', label: 'Rejected', class: 'status-rejected' },
+      'revision-requested': { icon: '🔄', label: 'Revision Requested', class: 'status-revision' },
     };
-    return statusClasses[status] || 'status-default';
+    return configs[status] || { icon: '•', label: status, class: 'status-default' };
   };
 
   const getCurrentMilestone = () => {
@@ -138,17 +163,24 @@ const ProjectMilestones = ({ projectId, userRole }) => {
   };
 
   if (loading) {
-    return <div className="milestones-loading">Loading milestones...</div>;
+    return (
+      <div className="milestones-loading">
+        <div className="spinner"></div>
+        <p>Loading milestones...</p>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="milestones-error">{error}</div>;
+    return <div className="milestones-error">⚠️ {error}</div>;
   }
 
   if (milestones.length === 0) {
     return (
       <div className="no-milestones">
-        <p>No milestones defined for this project.</p>
+        <div className="empty-state-icon">📋</div>
+        <h3>No milestones yet</h3>
+        <p>Milestones will appear here once the client creates them.</p>
       </div>
     );
   }
@@ -156,92 +188,140 @@ const ProjectMilestones = ({ projectId, userRole }) => {
   const currentMilestone = getCurrentMilestone();
   const completedCount = milestones.filter((m) => m.status === 'approved').length;
   const totalBudget = milestones.reduce((sum, m) => sum + m.amount, 0);
+  const earnedAmount = milestones
+    .filter((m) => m.status === 'approved')
+    .reduce((sum, m) => sum + m.amount, 0);
 
   return (
     <div className="project-milestones-container">
-      {/* Progress Overview */}
-      <div className="milestones-overview">
-        <h3>📊 Project Milestones</h3>
-        <div className="overview-stats">
-          <div className="stat-item">
-            <span className="stat-label">Total Milestones:</span>
-            <span className="stat-value">{milestones.length}</span>
+      {/* 🆕 Enhanced Overview with Progress Circle */}
+      <div className="milestones-overview-premium">
+        <div className="overview-header">
+          <h3>Project Milestones</h3>
+          <div className="completion-badge">
+            {completedCount} of {milestones.length} completed
           </div>
-          <div className="stat-item">
-            <span className="stat-label">Completed:</span>
-            <span className="stat-value stat-completed">{completedCount}</span>
+        </div>
+        
+        <div className="overview-stats-grid">
+          <div className="stat-card">
+            <div className="stat-icon">📊</div>
+            <div className="stat-content">
+              <span className="stat-label">Total Milestones</span>
+              <span className="stat-value">{milestones.length}</span>
+            </div>
           </div>
-          <div className="stat-item">
-            <span className="stat-label">Total Budget:</span>
-            <span className="stat-value">₹{totalBudget.toLocaleString()}</span>
+
+          <div className="stat-card stat-success">
+            <div className="stat-icon">✅</div>
+            <div className="stat-content">
+              <span className="stat-label">Completed</span>
+              <span className="stat-value">{completedCount}</span>
+            </div>
           </div>
+
+          <div className="stat-card stat-primary">
+            <div className="stat-icon">💰</div>
+            <div className="stat-content">
+              <span className="stat-label">Total Budget</span>
+              <span className="stat-value">₹{totalBudget.toLocaleString()}</span>
+            </div>
+          </div>
+
+          {userRole === 'freelancer' && (
+            <div className="stat-card stat-earned">
+              <div className="stat-icon">💵</div>
+              <div className="stat-content">
+                <span className="stat-label">Earned</span>
+                <span className="stat-value">₹{earnedAmount.toLocaleString()}</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {/* Current Milestone Highlight */}
+      {/* 🆕 Current Milestone Highlight with Better Design */}
       {currentMilestone && userRole === 'freelancer' && (
-        <div className="current-milestone-highlight">
-          <h4>🎯 Current Focus:</h4>
-          <p className="milestone-title">{currentMilestone.title}</p>
-          <p className="milestone-amount">₹{currentMilestone.amount.toLocaleString()}</p>
+        <div className="current-milestone-spotlight">
+          <div className="spotlight-header">
+            <span className="spotlight-badge">🎯 Current Focus</span>
+            <span className="spotlight-amount">₹{currentMilestone.amount.toLocaleString()}</span>
+          </div>
+          <h4 className="spotlight-title">{currentMilestone.title}</h4>
+          <p className="spotlight-description">{currentMilestone.description}</p>
+          
+          {/* Mini Progress */}
+          <div className="spotlight-progress">
+            <div className="spotlight-progress-bar">
+              <div 
+                className="spotlight-progress-fill" 
+                style={{ width: `${currentMilestone.progress}%` }}
+              ></div>
+            </div>
+            <span className="spotlight-progress-text">{currentMilestone.progress}% complete</span>
+          </div>
         </div>
       )}
 
       {/* Milestone List */}
       <div className="milestones-list">
-        {milestones.map((milestone, index) => (
-          <div
-            key={milestone._id}
-            className={`milestone-card ${currentMilestone?._id === milestone._id ? 'current-milestone' : ''
-              }`}
-          >
-            {/* Milestone Header */}
-            <div className="milestone-header">
-              <div className="milestone-number">#{milestone.order}</div>
-              <div className="milestone-info">
-                <h4>{milestone.title}</h4>
-                <p className="milestone-description">{milestone.description}</p>
-              </div>
-              <div className="milestone-amount-badge">
-                ₹{milestone.amount.toLocaleString()}
-              </div>
-            </div>
+        {milestones.map((milestone) => {
+          const statusConfig = getStatusConfig(milestone.status);
+          
+          return (
+            <div
+              key={milestone._id}
+              className={`milestone-card-premium ${
+                currentMilestone?._id === milestone._id ? 'current-active' : ''
+              } ${milestone.status === 'approved' ? 'completed' : ''}`}
+            >
+              {/* 🆕 Visual Status Timeline */}
+              <StatusStepper currentStatus={milestone.status} />
 
-            {/* Status Badge */}
-            <div className="milestone-status-row">
-              <span className={`status-badge ${getStatusBadgeClass(milestone.status)}`}>
-                {milestone.status.replace('-', ' ')}
-              </span>
-            </div>
-
-            {/* Progress Bar */}
-            <div className="milestone-progress-section">
-              <div className="progress-header">
-                <span>Progress:</span>
-                <span className="progress-percentage">{milestone.progress}%</span>
+              {/* Milestone Header */}
+              <div className="milestone-header-premium">
+                <div className="milestone-badge-number">#{milestone.order}</div>
+                <div className="milestone-info-premium">
+                  <h4>{milestone.title}</h4>
+                  <p className="milestone-description">{milestone.description}</p>
+                </div>
               </div>
-              <div className="progress-bar-container">
-                <div
-                  className="progress-bar-fill"
-                  style={{ width: `${milestone.progress}%` }}
-                ></div>
-              </div>
-            </div>
 
-            {/* Freelancer Controls */}
-            {userRole === 'freelancer' && (
-              <div className="milestone-controls">
-                {/* Progress Slider */}
-                {(milestone.status === 'in-progress' ||
-                  milestone.status === 'funded') && (
-                    <div className="progress-update-section">
-                      <label htmlFor={`progress-${milestone._id}`}>
-                        Update Progress:
-                      </label>
-                      <div className="progress-slider-group">
+              {/* Status and Amount Row */}
+              <div className="milestone-meta-row">
+                <span className={`status-badge-premium ${statusConfig.class}`}>
+                  <span className="status-icon">{statusConfig.icon}</span>
+                  {statusConfig.label}
+                </span>
+                <div className="amount-badge-premium">₹{milestone.amount.toLocaleString()}</div>
+              </div>
+
+              {/* 🆕 Enhanced Progress Bar with Gradient */}
+              <div className="progress-section-premium">
+                <div className="progress-header-premium">
+                  <span className="progress-label">Progress</span>
+                  <span className="progress-percentage-premium">{milestone.progress}%</span>
+                </div>
+                <div className="progress-track">
+                  <div
+                    className="progress-fill"
+                    style={{ width: `${milestone.progress}%` }}
+                  >
+                    <div className="progress-glow"></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Freelancer Controls */}
+              {userRole === 'freelancer' && (
+                <div className="milestone-controls-premium">
+                  {/* Progress Slider */}
+                  {(milestone.status === 'in-progress' || milestone.status === 'funded') && (
+                    <div className="progress-update-premium">
+                      <label>Update Progress</label>
+                      <div className="slider-group">
                         <input
                           type="range"
-                          id={`progress-${milestone._id}`}
                           min="0"
                           max="100"
                           step="5"
@@ -250,128 +330,140 @@ const ProjectMilestones = ({ projectId, userRole }) => {
                             handleProgressUpdate(milestone._id, e.target.value)
                           }
                           disabled={updatingProgress[milestone._id]}
-                          className="progress-slider"
+                          className="progress-slider-premium"
                         />
-                        <input
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={milestone.progress}
-                          onChange={(e) => {
-                            const val = Math.min(100, Math.max(0, e.target.value));
-                            handleProgressUpdate(milestone._id, val);
-                          }}
-                          disabled={updatingProgress[milestone._id]}
-                          className="progress-input"
-                        />
-                        <span>%</span>
+                        <div className="progress-input-group">
+                          <input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={milestone.progress}
+                            onChange={(e) => {
+                              const val = Math.min(100, Math.max(0, e.target.value));
+                              handleProgressUpdate(milestone._id, val);
+                            }}
+                            disabled={updatingProgress[milestone._id]}
+                            className="progress-input-premium"
+                          />
+                          <span className="progress-unit">%</span>
+                        </div>
                       </div>
                     </div>
                   )}
 
-                {/* Action Buttons */}
-                <div className="milestone-actions">
-                  {milestone.status === 'funded' && (
-                    <button
-                      className="btn-start-work"
-                      onClick={() =>
-                        handleStatusChange(milestone._id, 'in-progress')
-                      }
-                    >
-                      Start Work
-                    </button>
-                  )}
-
-                  {milestone.status === 'in-progress' &&
-                    milestone.progress === 100 && (
+                  {/* Action Buttons */}
+                  <div className="action-buttons-premium">
+                    {milestone.status === 'funded' && (
                       <button
-                        className="btn-submit"
-                        onClick={() =>
-                          handleStatusChange(milestone._id, 'submitted')
-                        }
+                        className="btn-premium btn-start"
+                        onClick={() => handleStatusChange(milestone._id, 'in-progress')}
                       >
+                        <span className="btn-icon">🚀</span>
+                        Start Work
+                      </button>
+                    )}
+
+                    {milestone.status === 'in-progress' && milestone.progress === 100 && (
+                      <button
+                        className="btn-premium btn-submit"
+                        onClick={() => handleStatusChange(milestone._id, 'submitted')}
+                      >
+                        <span className="btn-icon">📤</span>
                         Submit for Review
                       </button>
                     )}
 
-                  {milestone.status === 'revision-requested' && (
-                    <button
-                      className="btn-resubmit"
-                      onClick={() =>
-                        handleStatusChange(milestone._id, 'submitted')
-                      }
-                    >
-                      Resubmit
-                    </button>
+                    {milestone.status === 'revision-requested' && (
+                      <button
+                        className="btn-premium btn-resubmit"
+                        onClick={() => handleStatusChange(milestone._id, 'submitted')}
+                      >
+                        <span className="btn-icon">🔄</span>
+                        Resubmit
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Client Controls */}
+              {userRole === 'client' && (
+                <div className="milestone-controls-premium">
+                  {/* Payment Button */}
+                  {milestone.payment.status === 'pending' && milestone.status === 'pending' && (
+                    <MilestonePayment
+                      milestone={milestone}
+                      onPaymentSuccess={fetchMilestones}
+                    />
+                  )}
+
+                  {/* Review Actions */}
+                  {milestone.status === 'submitted' && (
+                    <div className="review-actions-premium">
+                      <button
+                        className="btn-premium btn-approve"
+                        onClick={() => handleStatusChange(milestone._id, 'approved')}
+                      >
+                        <span className="btn-icon">✓</span>
+                        Approve & Release Payment
+                      </button>
+                      <button
+                        className="btn-premium btn-revision"
+                        onClick={() =>
+                          handleStatusChange(milestone._id, 'revision-requested')
+                        }
+                      >
+                        <span className="btn-icon">↻</span>
+                        Request Revision
+                      </button>
+                      <button
+                        className="btn-premium btn-reject"
+                        onClick={() => handleStatusChange(milestone._id, 'rejected')}
+                      >
+                        <span className="btn-icon">✗</span>
+                        Reject
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Payment Status Display */}
+                  {milestone.payment.status !== 'pending' && (
+                    <div className="payment-status-card">
+                      <strong>Payment Status:</strong>
+                      <span className={`payment-status-badge ${milestone.payment.status}`}>
+                        {milestone.payment.status === 'paid' && '💰 Held in Escrow'}
+                        {milestone.payment.status === 'released' && '✅ Released to Freelancer'}
+                        {milestone.payment.status === 'refunded' && '↩️ Refunded'}
+                      </span>
+                    </div>
                   )}
                 </div>
-              </div>
-            )}
-
-            {/* Client Controls */}
-            {/* Client Controls */}
-            {userRole === 'client' && (
-              <div className="milestone-controls">
-                {/* Payment Button */}
-                {milestone.payment.status === 'pending' && milestone.status === 'pending' && (
-                  <MilestonePayment
-                    milestone={milestone}
-                    onPaymentSuccess={fetchMilestones}
-                  />
-                )}
-
-                {/* Review Actions */}
-                {milestone.status === 'submitted' && (
-                  <div className="client-review-actions">
-                    <button
-                      className="btn-approve"
-                      onClick={() => handleStatusChange(milestone._id, 'approved')}
-                    >
-                      ✓ Approve
-                    </button>
-                    <button
-                      className="btn-revision"
-                      onClick={() =>
-                        handleStatusChange(milestone._id, 'revision-requested')
-                      }
-                    >
-                      ↻ Request Revision
-                    </button>
-                    <button
-                      className="btn-reject"
-                      onClick={() => handleStatusChange(milestone._id, 'rejected')}
-                    >
-                      ✗ Reject
-                    </button>
-                  </div>
-                )}
-
-                {/* Payment Status Display */}
-                {milestone.payment.status !== 'pending' && (
-                  <div style={{ marginTop: '10px', padding: '10px', background: '#f0f9ff', borderRadius: '6px' }}>
-                    <strong>Payment Status:</strong>{' '}
-                    <span style={{ color: milestone.payment.status === 'released' ? '#16a34a' : '#2563eb' }}>
-                      {milestone.payment.status === 'paid' && '💰 In Escrow'}
-                      {milestone.payment.status === 'released' && '✅ Released to Freelancer'}
-                      {milestone.payment.status === 'refunded' && '↩️ Refunded'}
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
-
-
-            {/* Dates */}
-            <div className="milestone-dates">
-              <small>Created: {new Date(milestone.createdAt).toLocaleDateString()}</small>
-              {milestone.completedAt && (
-                <small>
-                  Completed: {new Date(milestone.completedAt).toLocaleDateString()}
-                </small>
               )}
+
+              {/* Dates Footer */}
+              <div className="milestone-footer-premium">
+                <span className="footer-date">
+                  <span className="footer-icon">📅</span>
+                  Created {new Date(milestone.createdAt).toLocaleDateString('en-IN', { 
+                    day: 'numeric', 
+                    month: 'short', 
+                    year: 'numeric' 
+                  })}
+                </span>
+                {milestone.completedAt && (
+                  <span className="footer-date footer-completed">
+                    <span className="footer-icon">✅</span>
+                    Completed {new Date(milestone.completedAt).toLocaleDateString('en-IN', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric'
+                    })}
+                  </span>
+                )}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

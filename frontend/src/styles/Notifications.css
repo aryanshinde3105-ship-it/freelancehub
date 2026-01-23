@@ -1,3 +1,7 @@
+/* ═══════════════════════════════════════════════════════════════
+   NOTIFICATIONS PAGE - Using Global Design Tokens
+   ═══════════════════════════════════════════════════════════════ */
+
 .notifications-page {
   max-width: 900px;
   margin: 0 auto;
@@ -8,118 +12,127 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 2rem;
+  margin-bottom: var(--space-8);
   flex-wrap: wrap;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .notifications-page-header h2 {
-  margin: 0 0 0.5rem 0;
-  font-size: 2rem;
-  color: #111827;
+  margin: 0 0 var(--space-2) 0;
+  font-size: var(--text-4xl);
+  color: var(--text-primary);
 }
 
 .notifications-subtitle {
-  color: #6b7280;
-  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
   margin: 0;
 }
 
 .notifications-actions {
   display: flex;
-  gap: 0.75rem;
+  gap: var(--space-3);
 }
 
 .btn-danger {
-  background: #ef4444;
-  color: white;
+  background: var(--gradient-danger);
+  color: var(--text-inverse);
   border: none;
-  padding: 0.65rem 1.25rem;
-  border-radius: 6px;
+  padding: var(--space-3) var(--space-5);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  font-weight: 500;
-  transition: background 0.2s;
+  font-weight: var(--font-medium);
+  transition: all var(--transition-base);
+  box-shadow: var(--shadow-sm);
 }
 
 .btn-danger:hover {
-  background: #dc2626;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-danger:active {
+  transform: translateY(0);
 }
 
 /* Filters */
 .notifications-filters {
   display: flex;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-  border-bottom: 2px solid #e5e7eb;
-  padding-bottom: 0.5rem;
+  gap: var(--space-3);
+  margin-bottom: var(--space-6);
+  border-bottom: var(--border-width-thick) solid var(--border-color);
+  padding-bottom: var(--space-2);
 }
 
 .filter-btn {
   background: transparent;
   border: none;
-  padding: 0.5rem 1rem;
+  padding: var(--space-2) var(--space-4);
   cursor: pointer;
-  font-weight: 500;
-  color: #6b7280;
-  border-radius: 6px;
-  transition: all 0.2s;
+  font-weight: var(--font-medium);
+  color: var(--text-secondary);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
   position: relative;
+  font-size: var(--text-sm);
 }
 
 .filter-btn:hover {
-  background: #f3f4f6;
-  color: #111827;
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }
 
 .filter-btn.active {
-  color: #3b82f6;
-  background: #eff6ff;
+  color: var(--color-primary);
+  background: rgba(79, 70, 229, 0.1);
 }
 
 .filter-btn.active::after {
   content: '';
   position: absolute;
-  bottom: -0.6rem;
+  bottom: calc(var(--space-2) * -1);
   left: 0;
   right: 0;
   height: 2px;
-  background: #3b82f6;
+  background: var(--color-primary);
 }
 
 /* Notifications List */
 .notifications-list-page {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 /* Notification Card */
 .notification-card {
   display: flex;
   align-items: flex-start;
-  gap: 1rem;
-  padding: 1.5rem;
-  background: white;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
+  gap: var(--space-4);
+  padding: var(--space-6);
+  background: var(--bg-primary);
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all var(--transition-base);
   position: relative;
 }
 
 .notification-card:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-md);
   transform: translateY(-2px);
+  border-color: var(--border-color-hover);
 }
 
 .notification-card.unread {
-  background: #eff6ff;
-  border-left: 4px solid #3b82f6;
+  background: rgba(79, 70, 229, 0.05);
+  border-left: 4px solid var(--color-primary);
 }
 
 .notification-icon-large {
-  font-size: 2rem;
+  font-size: var(--text-4xl);
   flex-shrink: 0;
+  line-height: 1;
 }
 
 .notification-content-large {
@@ -128,29 +141,29 @@
 }
 
 .notification-title-large {
-  font-weight: 600;
-  color: #111827;
-  font-size: 1.05rem;
-  margin-bottom: 0.5rem;
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  font-size: var(--text-lg);
+  margin-bottom: var(--space-2);
 }
 
 .notification-message-large {
-  color: #4b5563;
-  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
   line-height: 1.6;
-  margin-bottom: 0.5rem;
+  margin-bottom: var(--space-2);
 }
 
 .notification-time-large {
-  color: #9ca3af;
-  font-size: 0.85rem;
+  color: var(--text-tertiary);
+  font-size: var(--text-xs);
 }
 
 .delete-notification-btn-large {
   background: transparent;
   border: none;
-  color: #9ca3af;
-  font-size: 2rem;
+  color: var(--text-tertiary);
+  font-size: var(--text-4xl);
   cursor: pointer;
   padding: 0;
   width: 32px;
@@ -158,38 +171,39 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
-  transition: all 0.2s;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
   flex-shrink: 0;
 }
 
 .delete-notification-btn-large:hover {
-  background: #fee2e2;
-  color: #ef4444;
+  background: var(--color-danger-light);
+  color: var(--color-danger);
+  transform: scale(1.1);
 }
 
 /* Empty State */
 .empty-state {
   text-align: center;
-  padding: 4rem 2rem;
-  color: #6b7280;
+  padding: var(--space-16) var(--space-8);
+  color: var(--text-secondary);
 }
 
 .empty-icon {
-  font-size: 4rem;
+  font-size: 64px;
   display: block;
-  margin-bottom: 1rem;
+  margin-bottom: var(--space-4);
   opacity: 0.5;
 }
 
 .empty-state h3 {
-  color: #111827;
-  margin-bottom: 0.5rem;
-  font-size: 1.5rem;
+  color: var(--text-primary);
+  margin-bottom: var(--space-2);
+  font-size: var(--text-3xl);
 }
 
 .empty-state p {
-  font-size: 0.95rem;
+  font-size: var(--text-sm);
 }
 
 /* Responsive */
@@ -216,10 +230,10 @@
   }
 
   .notification-card {
-    padding: 1rem;
+    padding: var(--space-4);
   }
 
   .notification-icon-large {
-    font-size: 1.5rem;
+    font-size: var(--text-2xl);
   }
 }

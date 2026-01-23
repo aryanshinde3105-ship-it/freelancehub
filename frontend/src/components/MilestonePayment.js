@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import api from '../api';
+import '../styles/MilestonePayment.css';
 
 const MilestonePayment = ({ milestone, onPaymentSuccess }) => {
   const [loading, setLoading] = useState(false);
@@ -38,7 +39,7 @@ const MilestonePayment = ({ milestone, onPaymentSuccess }) => {
 
       // Razorpay options
       const options = {
-        key: key, // Razorpay Key ID
+        key: key,
         amount: order.amount,
         currency: currency,
         name: name,
@@ -59,12 +60,12 @@ const MilestonePayment = ({ milestone, onPaymentSuccess }) => {
             );
 
             if (verifyResponse.data.success) {
-              alert('Payment successful! Milestone funded.');
+              alert('✅ Payment successful! Milestone funded.');
               if (onPaymentSuccess) onPaymentSuccess();
             }
           } catch (error) {
             console.error('Payment verification failed:', error);
-            alert('Payment verification failed. Please contact support.');
+            alert('❌ Payment verification failed. Please contact support.');
           }
         },
         prefill: {
@@ -73,7 +74,7 @@ const MilestonePayment = ({ milestone, onPaymentSuccess }) => {
           contact: '',
         },
         theme: {
-          color: '#667eea',
+          color: '#4f46e5',
         },
         modal: {
           ondismiss: function () {
@@ -92,32 +93,146 @@ const MilestonePayment = ({ milestone, onPaymentSuccess }) => {
     }
   };
 
+  const isPending = milestone.payment.status === 'pending';
+  const isPaid = milestone.payment.status === 'paid';
+  const isReleased = milestone.payment.status === 'released';
+
   return (
-    <button
-      className="btn-pay-milestone"
-      onClick={handlePayment}
-      disabled={loading || milestone.payment.status !== 'pending'}
-      style={{
-        background: milestone.payment.status === 'pending' ? '#28a745' : '#6c757d',
-        color: 'white',
-        padding: '10px 20px',
-        border: 'none',
-        borderRadius: '6px',
-        cursor: milestone.payment.status === 'pending' ? 'pointer' : 'not-allowed',
-        fontWeight: '600',
-        fontSize: '0.95em',
-        width: '100%',
-        marginTop: '10px',
-      }}
-    >
-      {loading
-        ? '⏳ Processing...'
-        : milestone.payment.status === 'pending'
-        ? `💳 Pay ₹${milestone.amount.toLocaleString()}`
-        : milestone.payment.status === 'paid'
-        ? '✓ Paid (In Escrow)'
-        : `Status: ${milestone.payment.status}`}
-    </button>
+    <div className="milestone-payment-container">
+      {/* Payment Card */}
+      <div className={`payment-card ${!isPending ? 'payment-completed' : ''}`}>
+        
+        {/* Trust Badges Row */}
+        <div className="trust-badges">
+          <span className="trust-badge">
+            <span className="badge-icon">🔒</span>
+            Secure Payment
+          </span>
+          <span className="trust-badge">
+            <span className="badge-icon">✓</span>
+            Escrow Protected
+          </span>
+        </div>
+
+        {/* Price Display */}
+        <div className="price-section">
+          <span className="price-label">Milestone Amount</span>
+          <div className="price-display">
+            <span className="currency-symbol">₹</span>
+            <span className="price-value">{milestone.amount.toLocaleString('en-IN')}</span>
+          </div>
+          <p className="price-description">
+            {isPending && 'Funds will be held in escrow until milestone completion'}
+            {isPaid && 'Funds are securely held in escrow'}
+            {isReleased && 'Payment has been released to freelancer'}
+          </p>
+        </div>
+
+        {/* Payment Status or Button */}
+        {isPending ? (
+          <>
+            {/* Payment Info */}
+            <div className="payment-info-box">
+              <div className="info-item">
+                <span className="info-icon">💳</span>
+                <div className="info-content">
+                  <strong>Safe & Secure</strong>
+                  <span>Powered by Razorpay</span>
+                </div>
+              </div>
+              <div className="info-item">
+                <span className="info-icon">🛡️</span>
+                <div className="info-content">
+                  <strong>Buyer Protection</strong>
+                  <span>Money-back guarantee</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Pay Button */}
+            <button
+              className="payment-button-premium"
+              onClick={handlePayment}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <span className="button-spinner"></span>
+                  <span>Processing Payment...</span>
+                </>
+              ) : (
+                <>
+                  <span className="button-icon">💳</span>
+                  <span>Pay ₹{milestone.amount.toLocaleString('en-IN')} Now</span>
+                  <span className="button-arrow">→</span>
+                </>
+              )}
+            </button>
+
+            {/* Razorpay Branding */}
+            <div className="powered-by">
+              <span>Secured by</span>
+              <img 
+                src="https://razorpay.com/assets/razorpay-glyph.svg" 
+                alt="Razorpay" 
+                className="razorpay-logo"
+              />
+              <strong>Razorpay</strong>
+            </div>
+          </>
+        ) : (
+          /* Payment Status Display */
+          <div className="payment-status-display">
+            {isPaid && (
+              <div className="status-card status-escrow">
+                <div className="status-icon-large">💰</div>
+                <h4>Payment Secured</h4>
+                <p>₹{milestone.amount.toLocaleString('en-IN')} is held safely in escrow</p>
+                <div className="status-timeline">
+                  <div className="timeline-item completed">
+                    <div className="timeline-dot"></div>
+                    <span>Payment Received</span>
+                  </div>
+                  <div className="timeline-item active">
+                    <div className="timeline-dot"></div>
+                    <span>Waiting for Completion</span>
+                  </div>
+                  <div className="timeline-item">
+                    <div className="timeline-dot"></div>
+                    <span>Release Payment</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {isReleased && (
+              <div className="status-card status-released">
+                <div className="status-icon-large">✅</div>
+                <h4>Payment Released</h4>
+                <p>₹{milestone.amount.toLocaleString('en-IN')} has been transferred to the freelancer</p>
+                <div className="release-info">
+                  <span className="release-date">
+                    🗓️ {new Date(milestone.payment.releasedAt).toLocaleDateString('en-IN', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric'
+                    })}
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Security Notice */}
+      {isPending && (
+        <div className="security-notice">
+          <span className="notice-icon">ℹ️</span>
+          <span>Your payment information is encrypted and secure. We never store your card details.</span>
+        </div>
+      )}
+    </div>
   );
 };
 

@@ -1,22 +1,27 @@
+/* ═══════════════════════════════════════════════════════════════
+   STAR RATING - Using Global Design Tokens
+   ═══════════════════════════════════════════════════════════════ */
+
 .star-rating {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: var(--space-1);
 }
 
 .star {
-  transition: color 0.2s ease, transform 0.1s ease;
-  color: #ddd;
+  transition: all var(--transition-base);
+  color: var(--color-gray-300);
   -webkit-user-select: none;
   user-select: none;
+  cursor: pointer;
 }
 
 .star.filled {
-  color: #ffa500;
+  color: var(--color-warning);
 }
 
 .star.interactive:hover {
-  transform: scale(1.1);
+  transform: scale(1.15);
 }
 
 .star.interactive:active {
@@ -28,8 +33,8 @@
 }
 
 .rating-value {
-  font-size: 14px;
-  color: #666;
-  margin-left: 8px;
-  font-weight: 500;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin-left: var(--space-2);
+  font-weight: var(--font-medium);
 }
