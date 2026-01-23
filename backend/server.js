@@ -8,16 +8,12 @@ const connectDB = require('./config/db');
 const userRoutes = require('./routes/userRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 
-
 dotenv.config();
-
 
 connectDB();
 
-
 const app = express();
 const server = http.createServer(app);
-
 
 /* ✅ FIXED CORS (PRODUCTION SAFE) */
 app.use(
@@ -28,14 +24,11 @@ app.use(
   })
 );
 
-
 /* ✅ FIXED preflight handling for Node 22 */
 app.options(/.*/, cors());
 
-
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
 
 // routes
 app.use('/api/auth', require('./routes/authRoutes'));
@@ -46,8 +39,8 @@ app.use('/api/users', userRoutes);
 app.use('/api/dashboard', require('./routes/dashboardRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/admin', adminRoutes);
-app.use('/api/ratings', require('./routes/ratingRoutes')); // ✅ NEW: Rating routes
-
+app.use('/api/ratings', require('./routes/ratingRoutes'));
+app.use('/api/milestones', require('./routes/milestoneRoutes')); // ✅ NEW: Milestone routes
 
 /* ✅ Socket.io Configuration */
 const io = socketIO(server, {

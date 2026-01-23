@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-
 const projectSchema = new mongoose.Schema(
   {
     title: {
@@ -16,12 +15,10 @@ const projectSchema = new mongoose.Schema(
       required: true,
     },
 
-
     requiredSkills: {
       type: [String],
       default: [],
     },
-
 
     budget: {
       type: Number,
@@ -30,7 +27,6 @@ const projectSchema = new mongoose.Schema(
     deadline: {
       type: Date,
     },
-
 
     clientId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -43,13 +39,11 @@ const projectSchema = new mongoose.Schema(
       default: null,
     },
 
-
     status: {
       type: String,
       enum: ['open', 'in-progress', 'pending-approval', 'completed'],
       default: 'open',
     },
-
 
     deliverables: [
       {
@@ -67,7 +61,6 @@ const projectSchema = new mongoose.Schema(
       },
     ],
 
-
     rejectionReason: {
       type: String,
     },
@@ -78,7 +71,6 @@ const projectSchema = new mongoose.Schema(
       type: Date,
     },
 
-
     archivedBy: [
       {
         type: mongoose.Schema.Types.ObjectId,
@@ -87,7 +79,7 @@ const projectSchema = new mongoose.Schema(
     ],
 
     /* =====================
-       ✅ NEW: Rating Tracking
+       ✅ Rating Tracking
     ===================== */
     ratings: {
       clientReviewed: {
@@ -99,9 +91,117 @@ const projectSchema = new mongoose.Schema(
         default: false,
       },
     },
+
+    /* =====================
+       ✅ NEW: Milestone Tracking
+    ===================== */
+    milestones: {
+      total: {
+        type: Number,
+        default: 0,
+      },
+      completed: {
+        type: Number,
+        default: 0,
+      },
+      current: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Milestone',
+      },
+    },
+
+    /* =====================
+       ✅ NEW: Financial Tracking
+    ===================== */
+    financial: {
+      totalBudget: {
+        type: Number,
+        default: 0,
+      },
+      paidAmount: {
+        type: Number,
+        default: 0,
+      },
+      releasedAmount: {
+        type: Number,
+        default: 0,
+      },
+      pendingAmount: {
+        type: Number,
+        default: 0,
+      },
+      escrowAmount: {
+        type: Number,
+        default: 0,
+      },
+    },
+
+    /* =====================
+       ✅ NEW: Overall Progress (0-100)
+    ===================== */
+    overallProgress: {
+      type: Number,
+      min: 0,
+      max: 100,
+      default: 0,
+    },
+
+    /* =====================
+       ✅ NEW: Payment Type
+    ===================== */
+    paymentType: {
+      type: String,
+      enum: ['fixed-price', 'milestone-based', 'hourly'],
+      default: 'milestone-based',
+    },
   },
   { timestamps: true }
 );
 
+/* =====================
+   ✅ NEW: Calculate Overall Progress
+===================== */
+projectSchema.methods.calculateOverallProgress = async function () {
+  const Milestone = mongoose.model('Milestone');
+  const milestones = await Milestone.find({ projectId: this._id });
+
+  if (milestones.length === 0) {
+    this.overallProgress = 0;
+    return 0;
+  }
+
+  const totalProgress = milestones.reduce((sum, m) => sum + m.progress, 0);
+  this.overallProgress = Math.round(totalProgress / milestones.length);
+
+  return this.overallProgress;
+};
+
+/* =====================
+   ✅ NEW: Update Financial Stats
+===================== */
+projectSchema.methods.updateFinancialStats = async function () {
+  const Milestone = mongoose.model('Milestone');
+  const milestones = await Milestone.find({ projectId: this._id });
+
+  this.financial.totalBudget = milestones.reduce((sum, m) => sum + m.amount, 0);
+  this.financial.paidAmount = milestones
+    .filter((m) => m.payment.status !== 'pending')
+    .reduce((sum, m) => sum + m.amount, 0);
+  this.financial.releasedAmount = milestones
+    .filter((m) => m.payment.status === 'released')
+    .reduce((sum, m) => sum + m.amount, 0);
+  this.financial.escrowAmount = milestones
+    .filter((m) => m.payment.status === 'held' || m.payment.status === 'paid')
+    .reduce((sum, m) => sum + m.amount, 0);
+  this.financial.pendingAmount =
+    this.financial.totalBudget - this.financial.paidAmount;
+
+  this.milestones.total = milestones.length;
+  this.milestones.completed = milestones.filter(
+    (m) => m.status === 'approved'
+  ).length;
+
+  return this.financial;
+};
 
 module.exports = mongoose.model('Project', projectSchema);
