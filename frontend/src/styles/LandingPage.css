@@ -174,7 +174,6 @@
   filter: none;
   animation: float 6s ease-in-out infinite;
   image-rendering: -webkit-optimize-contrast;
-  image-rendering: crisp-edges;
 }
 
 @keyframes float {

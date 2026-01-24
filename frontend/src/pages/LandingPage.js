@@ -25,7 +25,7 @@ function LandingPage() {
                   <img src="/assets/icons/rocket.png" alt="" width="24" />
                   Get Started Free
                 </Link>
-                <Link to="/browse-projects" className="btn-secondary btn-large">
+                <Link to="/browse-projects" className="btn-secondary btn-large" >
                   <img src="/assets/icons/globe.png" alt="" width="24" />
                   Browse Projects
                 </Link>
@@ -318,7 +318,7 @@ function LandingPage() {
               <ul className="footer-links">
                 <li><a href="#about" onClick={(e) => e.preventDefault()}>About MVP</a></li>
                 <li><a href="#docs" onClick={(e) => e.preventDefault()}>Documentation</a></li>
-                <li><a href="https://github.com/yourusername/freelancehub" target="_blank" rel="noopener noreferrer">GitHub Repo</a></li>
+                <li><a href="https://github.com/aryanshinde3105-ship-it/freelancehub" target="_blank" rel="noopener noreferrer">GitHub Repo</a></li>
                 <li><a href="#contact" onClick={(e) => e.preventDefault()}>Contact</a></li>
               </ul>
             </div>

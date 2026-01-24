@@ -32,3 +32,17 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+# Test files
+test-email.js
+test-*.js
+
+# Environment
+.env
+.env.local
+
+# Dependencies
+node_modules/
+
+# Uploads
+uploads/
+temp/

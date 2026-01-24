@@ -1,13 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const Project = require('../models/Project');
+const Milestone = require('../models/Milestone'); // ← ADDED: Import Milestone model
 const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
 const { uploadFileToAzure, getAzureFileUrl } = require('../utils/azureStorage');
-const { createNotification } = require('../utils/notificationHelper'); // NEW IMPORT
-
-
+const { createNotification } = require('../utils/notificationHelper'); 
+const { sendEmail, emailTemplates } = require('../utils/emailService');
 
 /* =======================
    CREATE PROJECT (CLIENT)
@@ -18,20 +18,67 @@ router.post('/', authMiddleware, async (req, res) => {
       return res.status(403).json({ message: 'Only clients can post projects' });
     }
 
-
     const project = await Project.create({
       ...req.body,
       clientId: req.user.id,
       status: 'open',
     });
 
+    // ✅ SEND PROJECT POSTED EMAIL
+    const emailContent = emailTemplates.projectPosted(
+      req.user.name,
+      project.title,
+      project._id
+    );
+    
+    sendEmail({
+      to: req.user.email,
+      ...emailContent,
+    }).catch(err => console.error('Email failed:', err));
 
     res.status(201).json(project);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 });
 
+/* =======================
+   COMPLETE MILESTONE
+======================= */
+router.patch('/milestones/:id/complete', authMiddleware, async (req, res) => {
+  try {
+    const milestone = await Milestone.findById(req.params.id)
+      .populate('project')
+      .populate('freelancer');
+
+    if (!milestone) {
+      return res.status(404).json({ message: 'Milestone not found' });
+    }
+
+    milestone.status = 'completed';
+    milestone.completedAt = new Date();
+    await milestone.save();
+
+    // ✅ SEND EMAIL TO FREELANCER
+    const emailContent = emailTemplates.milestoneCompleted(
+      milestone.freelancer.name,
+      milestone.project.title,
+      milestone.title,
+      milestone.amount
+    );
+    
+    sendEmail({
+      to: milestone.freelancer.email,
+      ...emailContent,
+    }).catch(err => console.error('Email failed:', err));
+
+    res.json({ success: true, milestone });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: error.message });
+  }
+});
 
 /* =======================
    GET ALL OPEN PROJECTS WITH SEARCH & FILTERS
@@ -97,7 +144,6 @@ router.get('/', async (req, res) => {
   }
 });
 
-
 /* =======================
    CLIENT: MY PROJECTS
 ======================= */
@@ -107,18 +153,16 @@ router.get('/my', authMiddleware, async (req, res) => {
       return res.status(403).json({ message: 'Only clients can view their projects' });
     }
 
-
     const projects = await Project.find({ clientId: req.user.id })
       .populate('assignedFreelancerId', 'name email')
       .sort({ updatedAt: -1 });
 
-
     res.json(projects);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 });
-
 
 /* =======================
    FREELANCER: ACTIVE PROJECTS
@@ -129,20 +173,18 @@ router.get('/active', authMiddleware, async (req, res) => {
       return res.status(403).json({ message: 'Only freelancers can view active projects' });
     }
 
-
     const projects = await Project.find({
       assignedFreelancerId: req.user.id,
     })
       .populate('clientId', 'name email')
       .sort({ updatedAt: -1 });
 
-
     res.json(projects);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 });
-
 
 /* =======================
    ARCHIVE CHAT (PER USER)
@@ -152,23 +194,19 @@ router.patch('/:id/archive', authMiddleware, async (req, res) => {
     const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ message: 'Project not found' });
 
-
     const isClient = project.clientId.toString() === req.user.id;
     const isFreelancer =
       project.assignedFreelancerId &&
       project.assignedFreelancerId.toString() === req.user.id;
 
-
     if (!isClient && !isFreelancer) {
       return res.status(403).json({ message: 'Not authorized' });
     }
-
 
     if (!project.archivedBy.includes(req.user.id)) {
       project.archivedBy.push(req.user.id);
       await project.save();
     }
-
 
     res.json({ message: 'Chat archived' });
   } catch (err) {
@@ -176,7 +214,6 @@ router.patch('/:id/archive', authMiddleware, async (req, res) => {
     res.status(500).json({ message: 'Archive failed' });
   }
 });
-
 
 /* =======================
    UNARCHIVE CHAT
@@ -186,14 +223,11 @@ router.patch('/:id/unarchive', authMiddleware, async (req, res) => {
     const project = await Project.findById(req.params.id);
     if (!project) return res.status(404).json({ message: 'Project not found' });
 
-
     project.archivedBy = project.archivedBy.filter(
       (userId) => userId.toString() !== req.user.id
     );
 
-
     await project.save();
-
 
     res.json({ message: 'Chat unarchived' });
   } catch (err) {
@@ -201,7 +235,6 @@ router.patch('/:id/unarchive', authMiddleware, async (req, res) => {
     res.status(500).json({ message: 'Unarchive failed' });
   }
 });
-
 
 /* =======================
    GET SINGLE PROJECT
@@ -212,29 +245,25 @@ router.get('/:id', authMiddleware, async (req, res) => {
       .populate('clientId', 'name email')
       .populate('assignedFreelancerId', 'name email');
 
-
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
     }
-
 
     const isClient = project.clientId._id.toString() === req.user.id;
     const isFreelancer =
       project.assignedFreelancerId &&
       project.assignedFreelancerId._id.toString() === req.user.id;
 
-
     if (!isClient && !isFreelancer) {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-
     res.json(project);
   } catch (err) {
+    console.error(err);
     res.status(500).json({ message: 'Server error' });
   }
 });
-
 
 /* =======================
    UPLOAD FINAL WORK (FREELANCER)
@@ -249,10 +278,8 @@ router.post(
         return res.status(403).json({ message: 'Only freelancers can upload files' });
       }
 
-
-      const project = await Project.findById(req.params.id).populate('clientId', 'name');
+      const project = await Project.findById(req.params.id).populate('clientId', 'name email');
       if (!project) return res.status(404).json({ message: 'Project not found' });
-
 
       if (
         !project.assignedFreelancerId ||
@@ -260,7 +287,6 @@ router.post(
       ) {
         return res.status(403).json({ message: 'Not allowed' });
       }
-
 
       // Upload to Azure
       const filename = `${Date.now()}-${Math.random() * 1000000 | 0}`;
@@ -276,11 +302,9 @@ router.post(
         uploadedAt: new Date(),
       });
 
-
       project.lastUploadedAt = new Date();
       project.rejectionReason = undefined;
       project.status = 'pending-approval';
-
 
       await project.save();
 
@@ -293,7 +317,6 @@ router.post(
         link: `/my-projects`,
       });
 
-
       res.json({ message: 'File uploaded successfully', fileUrl });
     } catch (err) {
       console.error(err);
@@ -301,8 +324,6 @@ router.post(
     }
   }
 );
-
-
 
 /* =======================
    CLIENT: REJECT PROJECT
@@ -313,38 +334,34 @@ router.patch('/:id/reject', authMiddleware, async (req, res) => {
       return res.status(403).json({ message: 'Only clients can reject projects' });
     }
 
-
     const { reason } = req.body;
     if (!reason || reason.trim() === '') {
       return res.status(400).json({ message: 'Rejection reason is required' });
     }
 
-
-    const project = await Project.findById(req.params.id);
+    const project = await Project.findById(req.params.id)
+      .populate('assignedFreelancerId', 'name email');
+    
     if (!project) return res.status(404).json({ message: 'Project not found' });
-
 
     if (project.clientId.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Not allowed' });
     }
 
-
     project.status = 'in-progress';
     project.rejectionReason = reason;
     project.lastRejectedAt = new Date();
-
 
     await project.save();
 
     // ✅ SEND NOTIFICATION TO FREELANCER
     await createNotification({
-      userId: project.assignedFreelancerId,
+      userId: project.assignedFreelancerId._id,
       type: 'project_rejected',
       title: 'Revision Requested',
       message: `The client has requested revisions for "${project.title}". Check the feedback.`,
       link: `/my-active-projects`,
     });
-
 
     res.json({ message: 'Project rejected with reason' });
   } catch (err) {
@@ -352,7 +369,6 @@ router.patch('/:id/reject', authMiddleware, async (req, res) => {
     res.status(500).json({ message: 'Rejection failed' });
   }
 });
-
 
 /* =======================
    CLIENT: APPROVE PROJECT
@@ -363,15 +379,14 @@ router.patch('/:id/approve', authMiddleware, async (req, res) => {
       return res.status(403).json({ message: 'Only clients can approve' });
     }
 
-
-    const project = await Project.findById(req.params.id);
+    const project = await Project.findById(req.params.id)
+      .populate('assignedFreelancerId', 'name email');
+    
     if (!project) return res.status(404).json({ message: 'Project not found' });
-
 
     if (project.clientId.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Not allowed' });
     }
-
 
     if (
       project.lastRejectedAt &&
@@ -382,19 +397,28 @@ router.patch('/:id/approve', authMiddleware, async (req, res) => {
       });
     }
 
-
     project.status = 'completed';
     await project.save();
 
     // ✅ SEND NOTIFICATION TO FREELANCER
     await createNotification({
-      userId: project.assignedFreelancerId,
+      userId: project.assignedFreelancerId._id,
       type: 'project_completed',
       title: 'Project Approved! 🎉',
       message: `Congratulations! Your work for "${project.title}" has been approved.`,
       link: `/my-active-projects`,
     });
 
+    // ✅ SEND EMAIL TO FREELANCER
+    const emailContent = emailTemplates.projectCompleted(
+      project.assignedFreelancerId.name,
+      project.title
+    );
+    
+    sendEmail({
+      to: project.assignedFreelancerId.email,
+      ...emailContent,
+    }).catch(err => console.error('Email failed:', err));
 
     res.json({ message: 'Project approved' });
   } catch (err) {
@@ -402,6 +426,5 @@ router.patch('/:id/approve', authMiddleware, async (req, res) => {
     res.status(500).json({ message: 'Approval failed' });
   }
 });
-
 
 module.exports = router;
