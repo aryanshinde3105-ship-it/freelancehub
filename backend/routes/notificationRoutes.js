@@ -67,7 +67,18 @@ router.patch('/mark-all-read', authMiddleware, async (req, res) => {
   }
 });
 
-// Delete notification
+// ✅ NEW: Clear all notifications for the logged-in user
+router.delete('/', authMiddleware, async (req, res) => {
+  try {
+    await Notification.deleteMany({ userId: req.user.id });
+    res.json({ message: 'All notifications cleared' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Delete single notification
 router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     await Notification.findOneAndDelete({

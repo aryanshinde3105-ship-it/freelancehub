@@ -11,18 +11,20 @@ const authMiddleware = async (req, res, next) => {
 
     const token = authHeader.split(' ')[1];
 
+    // ✅ No fallback secret
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    // Support both 'userId' and 'id' for backward compatibility
-    const user = await User.findById(decoded.userId || decoded.id).select('role');
+    // ✅ Select id, role, name, email — so all routes can use req.user.name/email
+    const user = await User.findById(decoded.id).select('role name email');
     if (!user) {
       return res.status(401).json({ message: 'User not found' });
     }
 
-    // now every route can see both id and role
     req.user = {
       id: user._id.toString(),
       role: user.role,
+      name: user.name,   // ✅ Added
+      email: user.email, // ✅ Added
     };
 
     next();

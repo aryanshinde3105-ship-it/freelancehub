@@ -3,14 +3,13 @@ import { Link } from 'react-router-dom';
 import api from '../api';
 import ProjectProgress from '../components/ProjectProgress';
 import RatingForm from '../components/RatingForm';
-import ProjectMilestones from '../components/ProjectMilestones'; // ✅ NEW IMPORT
-import { getFileUrl } from '../utils/apiUrl';
-import '../styles/milestonesModal.css'; // ✅ NEW IMPORT
+import ProjectMilestones from '../components/ProjectMilestones';
+import '../styles/milestonesModal.css';
 
 function MyProjects() {
   const [projects, setProjects] = useState([]);
   const [rejectReason, setRejectReason] = useState({});
-  const [expandedProject, setExpandedProject] = useState(null); // ✅ NEW STATE - For milestone modal
+  const [expandedProject, setExpandedProject] = useState(null);
 
   // Rating modal state
   const [showRatingModal, setShowRatingModal] = useState(false);
@@ -19,7 +18,6 @@ function MyProjects() {
 
   const token = localStorage.getItem('token');
 
-  // extracted so we can reuse it
   const fetchProjects = async () => {
     try {
       const res = await api.get('/api/projects/my', {
@@ -27,7 +25,6 @@ function MyProjects() {
       });
       setProjects(res.data);
 
-      // Check review status for completed projects
       const completedProjects = res.data.filter(p => p.status === 'completed');
       for (const project of completedProjects) {
         checkCanReview(project._id);
@@ -43,32 +40,25 @@ function MyProjects() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
-  // Check if user can review a project
   const checkCanReview = async (projectId) => {
     try {
       const res = await api.get(`/api/ratings/can-review/${projectId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      setCanReviewStatus(prev => ({
-        ...prev,
-        [projectId]: res.data
-      }));
+      setCanReviewStatus(prev => ({ ...prev, [projectId]: res.data }));
     } catch (err) {
       console.error('Error checking review status:', err);
     }
   };
 
-  // Open rating modal
   const openRatingModal = async (project) => {
     try {
-      // Fetch full project details with populated user data
       const res = await api.get(`/api/projects/${project._id}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
       const fullProject = res.data;
 
-      // Client is rating the freelancer
       const reviewedUserId = typeof fullProject.assignedFreelancerId === 'object'
         ? fullProject.assignedFreelancerId._id
         : fullProject.assignedFreelancerId;
@@ -77,29 +67,20 @@ function MyProjects() {
         ? fullProject.assignedFreelancerId.name
         : 'Freelancer';
 
-      // If name is not available, fetch user details
       if (reviewedUserName === 'Freelancer' && reviewedUserId) {
         try {
           const userRes = await api.get(`/api/users/${reviewedUserId}`);
           setCurrentRatingProject({
             ...project,
             reviewedUserId,
-            reviewedUserName: userRes.data.name
+            reviewedUserName: userRes.data.name,
           });
         } catch (err) {
           console.error('Error fetching user name:', err);
-          setCurrentRatingProject({
-            ...project,
-            reviewedUserId,
-            reviewedUserName: 'Freelancer'
-          });
+          setCurrentRatingProject({ ...project, reviewedUserId, reviewedUserName: 'Freelancer' });
         }
       } else {
-        setCurrentRatingProject({
-          ...project,
-          reviewedUserId,
-          reviewedUserName
-        });
+        setCurrentRatingProject({ ...project, reviewedUserId, reviewedUserName });
       }
 
       setShowRatingModal(true);
@@ -109,30 +90,20 @@ function MyProjects() {
     }
   };
 
-  // Close rating modal
   const closeRatingModal = () => {
     setShowRatingModal(false);
     setCurrentRatingProject(null);
   };
 
-  // Handle successful rating submission
   const handleRatingSuccess = () => {
     closeRatingModal();
-    // Refresh review status
     if (currentRatingProject) {
       checkCanReview(currentRatingProject._id);
     }
   };
 
-  // ✅ NEW: Open milestone modal
-  const openMilestoneModal = (projectId) => {
-    setExpandedProject(projectId);
-  };
-
-  // ✅ NEW: Close milestone modal
-  const closeMilestoneModal = () => {
-    setExpandedProject(null);
-  };
+  const openMilestoneModal = (projectId) => setExpandedProject(projectId);
+  const closeMilestoneModal = () => setExpandedProject(null);
 
   const approveProject = async (projectId) => {
     try {
@@ -254,7 +225,7 @@ function MyProjects() {
                     </p>
                   )}
 
-                  {/* Deliverables (if pending approval) */}
+                  {/* ✅ FIXED: Deliverables — file is an object { url, originalName, filename } */}
                   {project.status === 'pending-approval' &&
                     project.deliverables?.length > 0 && (
                       <div style={{ marginTop: '1rem' }}>
@@ -264,7 +235,7 @@ function MyProjects() {
                         {project.deliverables.map((file, idx) => (
                           <div key={idx} style={{ marginBottom: '0.25rem' }}>
                             <a
-                              href={getFileUrl(file)}
+                              href={file.url}
                               target="_blank"
                               rel="noopener noreferrer"
                               style={{
@@ -273,7 +244,7 @@ function MyProjects() {
                                 fontSize: '0.9rem',
                               }}
                             >
-                              📄 {file.split('/').pop()}
+                              📄 {file.originalName || file.filename || `File ${idx + 1}`}
                             </a>
                           </div>
                         ))}
@@ -292,7 +263,7 @@ function MyProjects() {
                     </Link>
                   )}
 
-                  {/* Approve / Reject (for pending approval) */}
+                  {/* Approve / Reject */}
                   {project.status === 'pending-approval' && (
                     <>
                       <button
@@ -343,7 +314,7 @@ function MyProjects() {
                     </button>
                   )}
 
-                  {/* ✅ NEW: View Milestones Button */}
+                  {/* View Milestones Button */}
                   {project.paymentType === 'milestone-based' && (
                     <button
                       className="btn btn-secondary"
@@ -366,25 +337,13 @@ function MyProjects() {
         </div>
       )}
 
-      {/* ✅ NEW: MILESTONES MODAL */}
+      {/* MILESTONES MODAL */}
       {expandedProject && (
-        <div 
-          className="mh-modal-overlay" 
-          onClick={closeMilestoneModal}
-        >
-          <div 
-            className="mh-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Close Button */}
-            <button
-              className="mh-modal-close"
-              onClick={closeMilestoneModal}
-            >
+        <div className="mh-modal-overlay" onClick={closeMilestoneModal}>
+          <div className="mh-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="mh-modal-close" onClick={closeMilestoneModal}>
               ×
             </button>
-
-            {/* Modal Header */}
             <div className="mh-modal-header">
               <div>
                 <h2 className="mh-modal-title">Project Milestones</h2>
@@ -393,18 +352,12 @@ function MyProjects() {
                 </p>
               </div>
             </div>
-
-            {/* Milestones Content */}
             <div className="mh-modal-body">
-              <ProjectMilestones
-                projectId={expandedProject}
-                userRole="client"
-              />
+              <ProjectMilestones projectId={expandedProject} userRole="client" />
             </div>
           </div>
         </div>
       )}
-      {/* ✅ END MILESTONES MODAL */}
     </div>
   );
 }

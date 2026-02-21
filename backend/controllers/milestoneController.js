@@ -212,7 +212,71 @@ exports.updateProgress = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+/* =====================
+   ✅ NEW: UPDATE MILESTONE STATUS
+   - Freelancer: funded → in-progress, in-progress → submitted, revision-requested → submitted
+   - Client: submitted → revision-requested, submitted → rejected
+   (Client approve → handled separately via /api/payments/release/:id)
+===================== */
+exports.updateStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
 
+    const allowedStatuses = ['in-progress', 'submitted', 'revision-requested', 'rejected'];
+    if (!allowedStatuses.includes(status)) {
+      return res.status(400).json({ message: `Invalid status: ${status}` });
+    }
+
+    const milestone = await Milestone.findById(id).populate('projectId');
+
+    if (!milestone) {
+      return res.status(404).json({ message: 'Milestone not found' });
+    }
+
+    const project = milestone.projectId;
+    const isClient = project.clientId.toString() === req.user.id;
+    const isFreelancer = project.assignedFreelancerId?.toString() === req.user.id;
+
+    // Define valid transitions per role
+    const freelancerTransitions = {
+      'funded': 'in-progress',
+      'in-progress': 'submitted',
+      'revision-requested': 'submitted',
+    };
+
+    const clientTransitions = {
+      'submitted': ['revision-requested', 'rejected'],
+    };
+
+    if (isFreelancer) {
+      if (freelancerTransitions[milestone.status] !== status) {
+        return res.status(400).json({
+          message: `Invalid transition: ${milestone.status} → ${status} for freelancer`,
+        });
+      }
+      if (status === 'in-progress') {
+        milestone.startedAt = new Date();
+      }
+    } else if (isClient) {
+      if (!clientTransitions[milestone.status]?.includes(status)) {
+        return res.status(400).json({
+          message: `Invalid transition: ${milestone.status} → ${status} for client`,
+        });
+      }
+    } else {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    milestone.status = status;
+    await milestone.save();
+
+    res.json({ message: `Milestone status updated to ${status}`, milestone });
+  } catch (error) {
+    console.error('Update status error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
 module.exports = {
   createMilestone: exports.createMilestone,
   getProjectMilestones: exports.getProjectMilestones,
@@ -220,4 +284,5 @@ module.exports = {
   updateMilestone: exports.updateMilestone,
   deleteMilestone: exports.deleteMilestone,
   updateProgress: exports.updateProgress,
+  updateStatus: exports.updateStatus,
 };

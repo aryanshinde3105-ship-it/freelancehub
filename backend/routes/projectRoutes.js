@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const Project = require('../models/Project');
-const Milestone = require('../models/Milestone'); // ← ADDED: Import Milestone model
+const Milestone = require('../models/Milestone');
 const User = require('../models/User');
 const authMiddleware = require('../middleware/authMiddleware');
 const upload = require('../middleware/uploadMiddleware');
-const { uploadFileToAzure, getAzureFileUrl } = require('../utils/azureStorage');
-const { createNotification } = require('../utils/notificationHelper'); 
+const { uploadFileToAzure } = require('../utils/azureStorage');
+const { createNotification } = require('../utils/notificationHelper');
 const { sendEmail, emailTemplates } = require('../utils/emailService');
 
 /* =======================
@@ -24,13 +24,13 @@ router.post('/', authMiddleware, async (req, res) => {
       status: 'open',
     });
 
-    // ✅ SEND PROJECT POSTED EMAIL
+    // ✅ req.user.name and req.user.email now available from authMiddleware
     const emailContent = emailTemplates.projectPosted(
       req.user.name,
       project.title,
       project._id
     );
-    
+
     sendEmail({
       to: req.user.email,
       ...emailContent,
@@ -60,14 +60,13 @@ router.patch('/milestones/:id/complete', authMiddleware, async (req, res) => {
     milestone.completedAt = new Date();
     await milestone.save();
 
-    // ✅ SEND EMAIL TO FREELANCER
     const emailContent = emailTemplates.milestoneCompleted(
       milestone.freelancer.name,
       milestone.project.title,
       milestone.title,
       milestone.amount
     );
-    
+
     sendEmail({
       to: milestone.freelancer.email,
       ...emailContent,
@@ -85,51 +84,45 @@ router.patch('/milestones/:id/complete', authMiddleware, async (req, res) => {
 ======================= */
 router.get('/', async (req, res) => {
   try {
-    const { 
-      search, 
-      category, 
-      minBudget, 
-      maxBudget, 
+    const {
+      search,
+      category,
+      minBudget,
+      maxBudget,
       deadline,
       sortBy = 'createdAt',
-      sortOrder = 'desc'
+      sortOrder = 'desc',
     } = req.query;
 
-    // Build query
     let query = { status: 'open' };
 
-    // Search by keyword (title, description, category, skills)
     if (search && search.trim() !== '') {
       query.$or = [
         { title: { $regex: search, $options: 'i' } },
         { description: { $regex: search, $options: 'i' } },
         { category: { $regex: search, $options: 'i' } },
-        { requiredSkills: { $elemMatch: { $regex: search, $options: 'i' } } }
+        { requiredSkills: { $elemMatch: { $regex: search, $options: 'i' } } },
       ];
     }
 
-    // Filter by category
     if (category && category.trim() !== '' && category !== 'all') {
       query.category = { $regex: category, $options: 'i' };
     }
 
-    // Filter by budget range
     if (minBudget || maxBudget) {
       query.budget = {};
       if (minBudget) query.budget.$gte = Number(minBudget);
       if (maxBudget) query.budget.$lte = Number(maxBudget);
     }
 
-    // Filter by deadline (projects with deadline before specified date)
     if (deadline) {
       query.deadline = { $lte: new Date(deadline) };
     }
 
-    // Build sort options
     let sortOptions = {};
     const validSortFields = ['createdAt', 'budget', 'deadline'];
     const validSortOrders = ['asc', 'desc'];
-    
+
     if (validSortFields.includes(sortBy)) {
       sortOptions[sortBy] = validSortOrders.includes(sortOrder) ? sortOrder : 'desc';
     } else {
@@ -173,9 +166,7 @@ router.get('/active', authMiddleware, async (req, res) => {
       return res.status(403).json({ message: 'Only freelancers can view active projects' });
     }
 
-    const projects = await Project.find({
-      assignedFreelancerId: req.user.id,
-    })
+    const projects = await Project.find({ assignedFreelancerId: req.user.id })
       .populate('clientId', 'name email')
       .sort({ updatedAt: -1 });
 
@@ -228,7 +219,6 @@ router.patch('/:id/unarchive', authMiddleware, async (req, res) => {
     );
 
     await project.save();
-
     res.json({ message: 'Chat unarchived' });
   } catch (err) {
     console.error(err);
@@ -268,62 +258,55 @@ router.get('/:id', authMiddleware, async (req, res) => {
 /* =======================
    UPLOAD FINAL WORK (FREELANCER)
 ======================= */
-router.post(
-  '/:id/upload',
-  authMiddleware,
-  upload.single('file'),
-  async (req, res) => {
-    try {
-      if (req.user.role !== 'freelancer') {
-        return res.status(403).json({ message: 'Only freelancers can upload files' });
-      }
-
-      const project = await Project.findById(req.params.id).populate('clientId', 'name email');
-      if (!project) return res.status(404).json({ message: 'Project not found' });
-
-      if (
-        !project.assignedFreelancerId ||
-        project.assignedFreelancerId.toString() !== req.user.id
-      ) {
-        return res.status(403).json({ message: 'Not allowed' });
-      }
-
-      // Upload to Azure
-      const filename = `${Date.now()}-${Math.random() * 1000000 | 0}`;
-      const fileUrl = await uploadFileToAzure(filename, req.file.path, req.file.mimetype);
-
-      const freelancer = await User.findById(req.user.id);
-
-      project.deliverables.push({
-        filename: filename,
-        originalName: req.file.originalname,
-        url: fileUrl,
-        uploadedBy: req.user.id,
-        uploadedAt: new Date(),
-      });
-
-      project.lastUploadedAt = new Date();
-      project.rejectionReason = undefined;
-      project.status = 'pending-approval';
-
-      await project.save();
-
-      // ✅ SEND NOTIFICATION TO CLIENT
-      await createNotification({
-        userId: project.clientId._id,
-        type: 'deliverable_uploaded',
-        title: 'Work Submitted for Review',
-        message: `${freelancer.name} has uploaded the final deliverables for "${project.title}"`,
-        link: `/my-projects`,
-      });
-
-      res.json({ message: 'File uploaded successfully', fileUrl });
-    } catch (err) {
-      console.error(err);
-      res.status(500).json({ message: 'Upload failed' });
+router.post('/:id/upload', authMiddleware, upload.single('file'), async (req, res) => {
+  try {
+    if (req.user.role !== 'freelancer') {
+      return res.status(403).json({ message: 'Only freelancers can upload files' });
     }
+
+    const project = await Project.findById(req.params.id).populate('clientId', 'name email');
+    if (!project) return res.status(404).json({ message: 'Project not found' });
+
+    if (
+      !project.assignedFreelancerId ||
+      project.assignedFreelancerId.toString() !== req.user.id
+    ) {
+      return res.status(403).json({ message: 'Not allowed' });
+    }
+
+    const filename = `${Date.now()}-${Math.random() * 1000000 | 0}`;
+    const fileUrl = await uploadFileToAzure(filename, req.file.path, req.file.mimetype);
+
+    const freelancer = await User.findById(req.user.id);
+
+    project.deliverables.push({
+      filename: filename,
+      originalName: req.file.originalname,
+      url: fileUrl,
+      uploadedBy: req.user.id,
+      uploadedAt: new Date(),
+    });
+
+    project.lastUploadedAt = new Date();
+    project.rejectionReason = undefined;
+    project.status = 'pending-approval';
+
+    await project.save();
+
+    await createNotification({
+      userId: project.clientId._id,
+      type: 'deliverable_uploaded',
+      title: 'Work Submitted for Review',
+      message: `${freelancer.name} has uploaded the final deliverables for "${project.title}"`,
+      link: `/my-projects`,
+    });
+
+    res.json({ message: 'File uploaded successfully', fileUrl });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Upload failed' });
   }
-);
+});
 
 /* =======================
    CLIENT: REJECT PROJECT
@@ -341,7 +324,7 @@ router.patch('/:id/reject', authMiddleware, async (req, res) => {
 
     const project = await Project.findById(req.params.id)
       .populate('assignedFreelancerId', 'name email');
-    
+
     if (!project) return res.status(404).json({ message: 'Project not found' });
 
     if (project.clientId.toString() !== req.user.id) {
@@ -354,7 +337,6 @@ router.patch('/:id/reject', authMiddleware, async (req, res) => {
 
     await project.save();
 
-    // ✅ SEND NOTIFICATION TO FREELANCER
     await createNotification({
       userId: project.assignedFreelancerId._id,
       type: 'project_rejected',
@@ -381,7 +363,7 @@ router.patch('/:id/approve', authMiddleware, async (req, res) => {
 
     const project = await Project.findById(req.params.id)
       .populate('assignedFreelancerId', 'name email');
-    
+
     if (!project) return res.status(404).json({ message: 'Project not found' });
 
     if (project.clientId.toString() !== req.user.id) {
@@ -400,7 +382,6 @@ router.patch('/:id/approve', authMiddleware, async (req, res) => {
     project.status = 'completed';
     await project.save();
 
-    // ✅ SEND NOTIFICATION TO FREELANCER
     await createNotification({
       userId: project.assignedFreelancerId._id,
       type: 'project_completed',
@@ -409,12 +390,11 @@ router.patch('/:id/approve', authMiddleware, async (req, res) => {
       link: `/my-active-projects`,
     });
 
-    // ✅ SEND EMAIL TO FREELANCER
     const emailContent = emailTemplates.projectCompleted(
       project.assignedFreelancerId.name,
       project.title
     );
-    
+
     sendEmail({
       to: project.assignedFreelancerId.email,
       ...emailContent,

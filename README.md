@@ -43,21 +43,21 @@ A modern, full-stack freelancing marketplace platform built with **MERN Stack** 
 
 ```
 FreelanceHub/
-├── backend/                 # Node.js + Express API
-│   ├── models/             # MongoDB schemas
-│   ├── routes/             # API endpoints
-│   ├── controllers/        # Route handlers
-│   ├── middleware/         # Auth, file upload
-│   ├── utils/              # Azure storage, helpers
-│   └── server.js           # Main server
-├── frontend/               # React 18 (Create React App)
-│   ├── src/
-│   │   ├── pages/          # Route components
-│   │   ├── components/     # Reusable components
-│   │   ├── styles/         # Global CSS
-│   │   ├── api.js          # Axios instance
-│   │   └── auth.js         # Auth helpers
-│   └── package.json
+├── backend/ # Node.js + Express API
+│ ├── models/ # MongoDB schemas
+│ ├── routes/ # API endpoints
+│ ├── controllers/ # Route handlers
+│ ├── middleware/ # Auth, file upload
+│ ├── utils/ # Azure storage, helpers
+│ └── server.js # Main server
+├── frontend/ # React 18 (Create React App)
+│ ├── src/
+│ │ ├── pages/ # Route components
+│ │ ├── components/ # Reusable components
+│ │ ├── styles/ # Global CSS
+│ │ ├── api.js # Axios instance
+│ │ └── auth.js # Auth helpers
+│ └── package.json
 └── README.md
 ```
 
@@ -121,7 +121,7 @@ REACT_APP_API_URL=http://localhost:5000
 
 Start frontend:
 ```bash
-npm start
+npm run dev
 ```
 
 Visit: http://localhost:3000
@@ -144,8 +144,6 @@ Visit: http://localhost:3000
 - `POST /api/projects/:id/upload` - Upload deliverables
 - `PATCH /api/projects/:id/approve` - Approve completion
 - `PATCH /api/projects/:id/reject` - Reject with feedback
-- `PATCH /api/projects/:id/archive` - Archive chat
-- `PATCH /api/projects/:id/unarchive` - Unarchive chat
 
 ### Proposals
 - `POST /api/proposals` - Submit proposal
@@ -153,33 +151,11 @@ Visit: http://localhost:3000
 - `PATCH /api/proposals/:id/accept` - Accept proposal
 - `PATCH /api/proposals/:id/reject` - Reject proposal
 
-### Milestones
-- `POST /api/milestones` - Create milestone (Client)
-- `GET /api/milestones/project/:projectId` - Get project milestones
-- `GET /api/milestones/:id` - Get single milestone
-- `PUT /api/milestones/:id` - Edit milestone fields (Client, pending only)
-- `PATCH /api/milestones/:id/status` - Update milestone status
-- `PATCH /api/milestones/:id/progress` - Update progress (Freelancer)
-- `DELETE /api/milestones/:id` - Delete milestone (Client, pending only)
-
-### Payments
-- `POST /api/payments/release/:milestoneId` - Release milestone payment
-
-### Ratings
-- `POST /api/ratings` - Submit review
-- `GET /api/ratings/can-review/:projectId` - Check if user can review
-
-### Notifications
-- `GET /api/notifications` - Get all notifications
-- `GET /api/notifications/unread-count` - Get unread count
-- `PATCH /api/notifications/mark-all-read` - Mark all as read
-- `PATCH /api/notifications/:id/read` - Mark one as read
-- `DELETE /api/notifications` - Clear all notifications
-- `DELETE /api/notifications/:id` - Delete single notification
-
 ### Chat
 - `GET /api/chat/:projectId` - Get project messages
 - `POST /api/chat/:projectId` - Send message
+- `PATCH /api/projects/:id/archive` - Archive chat
+- `PATCH /api/projects/:id/unarchive` - Unarchive chat
 
 ### Dashboard
 - `GET /api/dashboard/stats` - Get analytics data
@@ -202,9 +178,10 @@ Visit: http://localhost:3000
 ## 📦 Tech Stack
 
 ### Frontend
-- **React 18** - UI library (Create React App)
-- **React Router v6** - Navigation
+- **React 18** - UI library
+- **Vite** - Build tool
 - **Axios** - HTTP client
+- **React Router v6** - Navigation
 - **CSS3** - Styling with animations
 
 ### Backend
@@ -230,19 +207,17 @@ Visit: http://localhost:3000
 ### Client
 - Post projects with budget and deadline
 - Review freelancer proposals
-- Manage project timeline and milestones
-- Fund milestones via escrow
+- Manage project timeline
+- Upload requirements and feedback
 - Approve/reject completed work
-- Leave ratings and reviews
 - View dashboard analytics
 
 ### Freelancer
 - Browse available projects
 - Submit proposals with bid amounts
-- Update milestone progress
-- Submit milestones for review
+- Accept/reject proposals
 - Deliver work with file uploads
-- Communicate with client via chat
+- Communicate via chat
 - View earnings and project stats
 
 ---
@@ -268,13 +243,19 @@ Visit: http://localhost:3000
 ## 🐛 Known Issues & Limitations
 - File uploads only persist in Azure (local uploads deleted on server restart)
 - Chat uses polling (8-second intervals) instead of WebSockets
+- Real-time notifications not yet implemented
+- Payment integration not yet implemented
+- Email notifications not yet implemented
 
 ---
 
 ## 🚧 Future Features
+- [ ] Payment integration (Razorpay/Stripe)
 - [ ] Email notifications
 - [ ] Real-time chat with WebSockets
+- [ ] User ratings and reviews
 - [ ] Advanced search and filters
+- [ ] Project milestones
 - [ ] Skill endorsements
 - [ ] Dark mode toggle
 - [ ] Mobile app (React Native)
@@ -314,8 +295,8 @@ AZURE_STORAGE_CONTAINER_NAME
 4. Submit project
 5. Review incoming proposals
 6. Accept freelancer
-7. Fund milestones
-8. Approve completed work and release payment
+7. Communicate via chat
+8. Approve completed work
 
 ### As a Freelancer
 1. Sign up and create account
@@ -323,9 +304,9 @@ AZURE_STORAGE_CONTAINER_NAME
 3. Find suitable project
 4. Submit proposal with bid
 5. Wait for client acceptance
-6. Start working on funded milestones
-7. Upload deliverables and submit for review
-8. Communicate with client via chat
+6. Start working on project
+7. Upload deliverables
+8. Communicate with client
 
 ---
 
@@ -384,4 +365,4 @@ For support, email aryanshinde3105@gmail.com or open an issue on GitHub.
 
 Made with ❤️ by Aryan Shinde
 
-Last Updated: February 2026
+Last Updated: January 10, 2026

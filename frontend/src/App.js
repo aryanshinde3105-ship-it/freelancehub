@@ -21,6 +21,7 @@ import ProjectProposals from './pages/ProjectProposals';
 import MyActiveProjects from './pages/MyActiveProjects';
 import ProjectChat from './pages/ProjectChat';
 import Chats from './pages/Chats';
+import ArchivedChats from './pages/ArchivedChats';
 import EditProfile from './pages/EditProfile';
 import NotificationBell from './components/NotificationBell';
 import Notifications from './pages/Notifications';
@@ -231,7 +232,15 @@ function Layout() {
               </ProtectedRoute>
             }
           />
-
+          {/* ✅ ADD THIS ROUTE */}
+          <Route
+            path="/archived-chats"
+            element={
+              <ProtectedRoute>
+                <ArchivedChats />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/edit-profile"
             element={

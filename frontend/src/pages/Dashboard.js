@@ -155,7 +155,8 @@ function Dashboard() {
               <Link to="/my-proposals">
                 <button className="btn btn-secondary">📄 My Proposals</button>
               </Link>
-              <Link to="/active-projects">
+              {/* ✅ FIXED: was /active-projects */}
+              <Link to="/my-active-projects">
                 <button className="btn btn-secondary">🛠 Active Work</button>
               </Link>
               <Link to="/chats">
