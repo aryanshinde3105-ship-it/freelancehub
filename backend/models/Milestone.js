@@ -110,38 +110,13 @@ const milestoneSchema = new mongoose.Schema(
 // Compound index for querying milestones by project in order
 milestoneSchema.index({ projectId: 1, order: 1 });
 
-// Auto-set workflow timestamps when status changes
-// IMPORTANT: Must be a regular function, NOT an arrow function
-milestoneSchema.pre('save', function(next) {
-  if (this.isModified('status')) {
-    const now = new Date();
-    if (this.status === 'in-progress' && !this.startedAt) {
-      this.startedAt = now;
-    }
-    if (this.status === 'submitted') {
-      this.submittedAt = now;
-    }
-    if (
-      this.status === 'under-review' ||
-      this.status === 'approved' ||
-      this.status === 'rejected'
-    ) {
-      this.reviewedAt = now;
-    }
-    if (this.status === 'approved') {
-      this.completedAt = now;
-    }
-  }
-  next();
-});
-
 // Virtual: is this milestone ready to be funded?
-milestoneSchema.virtual('isPayable').get(function() {
+milestoneSchema.virtual('isPayable').get(function () {
   return this.status === 'pending' && this.payment.status === 'pending';
 });
 
 // Virtual: can this milestone still be edited?
-milestoneSchema.virtual('isEditable').get(function() {
+milestoneSchema.virtual('isEditable').get(function () {
   return this.status === 'pending' && this.payment.status === 'pending';
 });
 
