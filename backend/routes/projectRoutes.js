@@ -49,8 +49,7 @@ router.post('/', authMiddleware, async (req, res) => {
 router.patch('/milestones/:id/complete', authMiddleware, async (req, res) => {
   try {
     const milestone = await Milestone.findById(req.params.id)
-      .populate('project')
-      .populate('freelancer');
+      .populate('projectId');
 
     if (!milestone) {
       return res.status(404).json({ message: 'Milestone not found' });

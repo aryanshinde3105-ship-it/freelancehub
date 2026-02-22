@@ -23,7 +23,7 @@ function Chats() {
               });
 
         const visible = res.data.filter(
-          p => !p.archivedBy?.includes(user.id)
+          p => !p.archivedBy?.includes(user._id)
         );
 
         setProjects(visible);

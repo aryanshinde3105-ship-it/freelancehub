@@ -70,7 +70,7 @@ function ProjectChat() {
 
       <div className="chat-container">
         {messages.map((msg) => {
-          const isMe = msg.senderId._id === user.id;
+          const isMe = msg.senderId._id === user._id;
 
           return (
             <div

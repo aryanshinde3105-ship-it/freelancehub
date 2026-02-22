@@ -23,7 +23,7 @@ function ArchivedChats() {
               });
 
         const archived = res.data.filter(p =>
-          p.archivedBy?.includes(user.id)
+          p.archivedBy?.includes(user._id)
         );
 
         setProjects(archived);
