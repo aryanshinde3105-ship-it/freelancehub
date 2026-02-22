@@ -11,7 +11,6 @@ function MyProjects() {
   const [rejectReason, setRejectReason] = useState({});
   const [expandedProject, setExpandedProject] = useState(null);
 
-  // Rating modal state
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [currentRatingProject, setCurrentRatingProject] = useState(null);
   const [canReviewStatus, setCanReviewStatus] = useState({});
@@ -176,6 +175,7 @@ function MyProjects() {
         <div className="card-grid">
           {projects.map((project) => {
             const reviewStatus = canReviewStatus[project._id];
+            const isMilestoneBased = project.paymentType === 'milestone-based';
 
             return (
               <div key={project._id} className="card project-card">
@@ -211,6 +211,20 @@ function MyProjects() {
                     )}
                   </p>
 
+                  {/* Milestone-based hint in body */}
+                  {isMilestoneBased && project.status === 'in-progress' && (
+                    <p style={{
+                      marginTop: '0.75rem',
+                      fontSize: '0.875rem',
+                      color: '#667eea',
+                      background: '#eef2ff',
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '6px',
+                    }}>
+                      💡 This is a milestone-based project. Use <strong>View Milestones</strong> below to review and approve work.
+                    </p>
+                  )}
+
                   {/* Completed project message */}
                   {project.status === 'completed' && !reviewStatus?.hasReviewed && (
                     <p className="mt-1" style={{ color: '#16a34a', fontWeight: '500' }}>
@@ -225,8 +239,9 @@ function MyProjects() {
                     </p>
                   )}
 
-                  {/* ✅ FIXED: Deliverables — file is an object { url, originalName, filename } */}
-                  {project.status === 'pending-approval' &&
+                  {/* Deliverables — only for fixed-price projects */}
+                  {!isMilestoneBased &&
+                    project.status === 'pending-approval' &&
                     project.deliverables?.length > 0 && (
                       <div style={{ marginTop: '1rem' }}>
                         <strong style={{ display: 'block', marginBottom: '0.5rem' }}>
@@ -263,8 +278,8 @@ function MyProjects() {
                     </Link>
                   )}
 
-                  {/* Approve / Reject */}
-                  {project.status === 'pending-approval' && (
+                  {/* Approve / Reject — fixed-price only */}
+                  {!isMilestoneBased && project.status === 'pending-approval' && (
                     <>
                       <button
                         className="btn btn-primary"
@@ -315,7 +330,7 @@ function MyProjects() {
                   )}
 
                   {/* View Milestones Button */}
-                  {project.paymentType === 'milestone-based' && (
+                  {isMilestoneBased && (
                     <button
                       className="btn btn-secondary"
                       onClick={() => openMilestoneModal(project._id)}

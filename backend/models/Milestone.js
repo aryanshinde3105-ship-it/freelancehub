@@ -34,14 +34,14 @@ const milestoneSchema = new mongoose.Schema(
     status: {
       type: String,
       enum: [
-        'pending',           // Not started, not paid
-        'funded',            // Client paid, money in escrow
-        'in-progress',       // Freelancer working on it
-        'submitted',         // Freelancer submitted deliverable
-        'under-review',      // Client reviewing
-        'revision-requested',// Client wants changes
-        'approved',          // Client approved, money released
-        'rejected',          // Client rejected
+        'pending',            // Not started, not paid
+        'funded',             // Client paid, money in escrow
+        'in-progress',        // Freelancer working on it
+        'submitted',          // Freelancer submitted deliverable
+        'under-review',       // Client reviewing
+        'revision-requested', // Client wants changes
+        'approved',           // Client approved, money released
+        'rejected',           // Client rejected
       ],
       default: 'pending',
     },
@@ -54,7 +54,7 @@ const milestoneSchema = new mongoose.Schema(
       default: 0,
     },
 
-    // Deliverables
+    // Deliverables (file uploads if any)
     deliverables: [
       {
         filename: String,
@@ -88,25 +88,46 @@ const milestoneSchema = new mongoose.Schema(
     reviewedAt: Date,
     completedAt: Date,
 
-    // Feedback
-    submissionNotes: String,
-    clientFeedback: String,
-    revisionNotes: String,
+    // Feedback & notes
+    submissionNotes: {
+      type: String,
+      default: '',
+    },
+    clientFeedback: {
+      type: String,
+      default: '',
+    },
+    revisionNotes: {
+      type: String,
+      default: '',
+    },
   },
   {
     timestamps: true,
   }
 );
 
-// Index for querying milestones by project
+// Compound index for querying milestones by project in order
 milestoneSchema.index({ projectId: 1, order: 1 });
 
-// Virtual for checking if milestone is payable
+// Auto-set workflow timestamps when status changes
+milestoneSchema.pre('save', function (next) {
+  if (this.isModified('status')) {
+    const now = new Date();
+    if (this.status === 'in-progress' && !this.startedAt) this.startedAt = now;
+    if (this.status === 'submitted') this.submittedAt = now;
+    if (this.status === 'under-review' || this.status === 'approved' || this.status === 'rejected') this.reviewedAt = now;
+    if (this.status === 'approved') this.completedAt = now;
+  }
+  next();
+});
+
+// Virtual: is this milestone ready to be funded?
 milestoneSchema.virtual('isPayable').get(function () {
   return this.status === 'pending' && this.payment.status === 'pending';
 });
 
-// Virtual for checking if milestone is editable
+// Virtual: can this milestone still be edited?
 milestoneSchema.virtual('isEditable').get(function () {
   return this.status === 'pending' && this.payment.status === 'pending';
 });
