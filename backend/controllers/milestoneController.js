@@ -221,7 +221,7 @@ exports.updateProgress = async (req, res) => {
 exports.updateStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, submissionNote } = req.body;
 
     const allowedStatuses = ['in-progress', 'submitted', 'revision-requested', 'rejected'];
     if (!allowedStatuses.includes(status)) {
@@ -257,6 +257,10 @@ exports.updateStatus = async (req, res) => {
       }
       if (status === 'in-progress') {
         milestone.startedAt = new Date();
+      }
+      if (status === 'submitted' && submissionNote !== undefined) {
+        milestone.submissionNotes = submissionNote;
+        milestone.submittedAt = new Date();
       }
     } else if (isClient) {
       if (!clientTransitions[milestone.status]?.includes(status)) {
