@@ -8,7 +8,6 @@ exports.createMilestone = async (req, res) => {
   try {
     const { projectId, title, description, amount, order } = req.body;
     
-    // Verify project exists and user is the client
     const project = await Project.findById(projectId);
     if (!project) {
       return res.status(404).json({ message: 'Project not found' });
@@ -18,7 +17,6 @@ exports.createMilestone = async (req, res) => {
       return res.status(403).json({ message: 'Only project owner can create milestones' });
     }
     
-    // Create milestone
     const milestone = await Milestone.create({
       projectId,
       title,
@@ -27,7 +25,6 @@ exports.createMilestone = async (req, res) => {
       order: order || 1,
     });
     
-    // Update project financial stats
     await project.updateFinancialStats();
     await project.save();
     
@@ -94,19 +91,16 @@ exports.updateMilestone = async (req, res) => {
       return res.status(404).json({ message: 'Milestone not found' });
     }
     
-    // Only allow editing if milestone is pending and not paid
     if (milestone.status !== 'pending' || milestone.payment.status !== 'pending') {
       return res.status(400).json({ 
         message: 'Cannot edit milestone that has been paid or started' 
       });
     }
     
-    // Verify user is project owner
     if (milestone.projectId.clientId.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Not authorized' });
     }
     
-    // Update fields
     if (title) milestone.title = title;
     if (description) milestone.description = description;
     if (amount !== undefined) milestone.amount = amount;
@@ -114,7 +108,6 @@ exports.updateMilestone = async (req, res) => {
     
     await milestone.save();
     
-    // Update project financial stats
     await milestone.projectId.updateFinancialStats();
     await milestone.projectId.save();
     
@@ -141,21 +134,18 @@ exports.deleteMilestone = async (req, res) => {
       return res.status(404).json({ message: 'Milestone not found' });
     }
     
-    // Only allow deletion if milestone is pending and not paid
     if (milestone.status !== 'pending' || milestone.payment.status !== 'pending') {
       return res.status(400).json({ 
         message: 'Cannot delete milestone that has been paid or started' 
       });
     }
     
-    // Verify user is project owner
     if (milestone.projectId.clientId.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Not authorized' });
     }
     
     await Milestone.findByIdAndDelete(id);
     
-    // Update project financial stats
     await milestone.projectId.updateFinancialStats();
     await milestone.projectId.save();
     
@@ -168,6 +158,8 @@ exports.deleteMilestone = async (req, res) => {
 
 /* =====================
    UPDATE MILESTONE PROGRESS
+   Bug 3 Fix: Allow slider to promote status from funded → in-progress
+   so freelancers don't have to click 'Start Work' before dragging the slider.
 ===================== */
 exports.updateProgress = async (req, res) => {
   try {
@@ -184,22 +176,32 @@ exports.updateProgress = async (req, res) => {
       return res.status(404).json({ message: 'Milestone not found' });
     }
     
-    // Verify user is the assigned freelancer
     if (milestone.projectId.assignedFreelancerId?.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Only assigned freelancer can update progress' });
+    }
+
+    // Only allow progress updates on active milestones
+    const activeStatuses = ['funded', 'in-progress', 'revision-requested'];
+    if (!activeStatuses.includes(milestone.status)) {
+      return res.status(400).json({
+        message: `Cannot update progress on a milestone with status: ${milestone.status}`,
+      });
     }
     
     milestone.progress = progress;
     
-    // Auto-update status
+    // Bug 3 Fix: Promote status from funded → in-progress when progress > 0
+    // This allows the slider to implicitly start work without requiring the button
     if (progress > 0 && milestone.status === 'funded') {
       milestone.status = 'in-progress';
       milestone.startedAt = new Date();
     }
+
+    // If freelancer drags back to 0 while in-progress, keep status as in-progress
+    // (don't regress back to funded)
     
     await milestone.save();
     
-    // Update project overall progress
     await milestone.projectId.calculateOverallProgress();
     await milestone.projectId.save();
     
@@ -212,8 +214,9 @@ exports.updateProgress = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
 /* =====================
-   ✅ NEW: UPDATE MILESTONE STATUS
+   UPDATE MILESTONE STATUS
    - Freelancer: funded → in-progress, in-progress → submitted, revision-requested → submitted
    - Client: submitted → revision-requested, submitted → rejected
    (Client approve → handled separately via /api/payments/release/:id)
@@ -238,7 +241,6 @@ exports.updateStatus = async (req, res) => {
     const isClient = project.clientId.toString() === req.user.id;
     const isFreelancer = project.assignedFreelancerId?.toString() === req.user.id;
 
-    // Define valid transitions per role
     const freelancerTransitions = {
       'funded': 'in-progress',
       'in-progress': 'submitted',
@@ -281,6 +283,7 @@ exports.updateStatus = async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
+
 module.exports = {
   createMilestone: exports.createMilestone,
   getProjectMilestones: exports.getProjectMilestones,

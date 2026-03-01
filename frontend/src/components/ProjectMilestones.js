@@ -3,6 +3,7 @@ import api from '../api';
 import '../styles/ProjectMilestones.css';
 import MilestonePayment from './MilestonePayment';
 
+// Bug 6 Fix: Added 'revision-requested' and 'rejected' to statusOrder so stepper doesn't go blank
 const StatusStepper = ({ currentStatus }) => {
   const steps = [
     { key: 'pending', label: 'Created', icon: '📝' },
@@ -12,12 +13,32 @@ const StatusStepper = ({ currentStatus }) => {
     { key: 'approved', label: 'Completed', icon: '✅' },
   ];
 
-  const statusOrder = ['pending', 'funded', 'in-progress', 'submitted', 'under-review', 'approved'];
+  const statusOrder = [
+    'pending',
+    'funded',
+    'in-progress',
+    'submitted',
+    'under-review',
+    'revision-requested',
+    'rejected',
+    'approved',
+  ];
   const currentIndex = statusOrder.indexOf(currentStatus);
 
+  // For revision-requested and rejected, highlight the submitted step as active
+  // so the stepper shows meaningful progress instead of going blank
+  const getEffectiveIndex = () => {
+    if (currentStatus === 'revision-requested' || currentStatus === 'rejected') {
+      return statusOrder.indexOf('submitted');
+    }
+    return currentIndex;
+  };
+
+  const effectiveIndex = getEffectiveIndex();
+
   const getStepStatus = (stepIndex) => {
-    if (stepIndex < currentIndex) return 'completed';
-    if (stepIndex === currentIndex) return 'active';
+    if (stepIndex < effectiveIndex) return 'completed';
+    if (stepIndex === effectiveIndex) return 'active';
     return 'upcoming';
   };
 
@@ -48,8 +69,9 @@ const ProjectMilestones = ({ projectId, userRole }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updatingProgress, setUpdatingProgress] = useState({});
-  // submission notes keyed by milestoneId
   const [submissionNotes, setSubmissionNotes] = useState({});
+  // Bug 1 Fix: Local draft state so slider doesn't spam API on every drag tick
+  const [progressDraft, setProgressDraft] = useState({});
   const token = localStorage.getItem('token');
 
   useEffect(() => {
@@ -74,7 +96,12 @@ const ProjectMilestones = ({ projectId, userRole }) => {
         return;
       }
 
-      setMilestones(milestonesArray.sort((a, b) => a.order - b.order));
+      const sorted = milestonesArray.sort((a, b) => a.order - b.order);
+      setMilestones(sorted);
+      // Sync draft state with fetched progress values
+      const drafts = {};
+      sorted.forEach(m => { drafts[m._id] = m.progress; });
+      setProgressDraft(drafts);
       setError('');
     } catch (err) {
       console.error('Error fetching milestones:', err);
@@ -84,20 +111,27 @@ const ProjectMilestones = ({ projectId, userRole }) => {
     }
   };
 
+  // Bug 1 Fix: Only called on mouseUp/touchEnd/blur, not on every drag tick
   const handleProgressUpdate = async (milestoneId, newProgress) => {
+    const val = Number(newProgress);
     try {
       setUpdatingProgress(prev => ({ ...prev, [milestoneId]: true }));
       await api.patch(
         `/api/milestones/${milestoneId}/progress`,
-        { progress: Number(newProgress) },
+        { progress: val },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setMilestones(prev =>
-        prev.map(m => m._id === milestoneId ? { ...m, progress: Number(newProgress) } : m)
+        prev.map(m => m._id === milestoneId ? { ...m, progress: val } : m)
       );
     } catch (err) {
       console.error('Error updating progress:', err);
       alert(err.response?.data?.message || 'Failed to update progress');
+      // Revert draft on error
+      setProgressDraft(prev => {
+        const m = milestones.find(ms => ms._id === milestoneId);
+        return { ...prev, [milestoneId]: m ? m.progress : prev[milestoneId] };
+      });
     } finally {
       setUpdatingProgress(prev => ({ ...prev, [milestoneId]: false }));
     }
@@ -129,7 +163,6 @@ const ProjectMilestones = ({ projectId, userRole }) => {
         );
         alert('✅ Milestone approved! Payment released to freelancer.');
 
-        // Check if ALL milestones are now approved → auto-complete project
         const updated = await api.get(`/api/milestones/project/${projectId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -261,9 +294,14 @@ const ProjectMilestones = ({ projectId, userRole }) => {
           <p className="spotlight-description">{currentMilestone.description}</p>
           <div className="spotlight-progress">
             <div className="spotlight-progress-bar">
-              <div className="spotlight-progress-fill" style={{ width: `${currentMilestone.progress}%` }}></div>
+              <div
+                className="spotlight-progress-fill"
+                style={{ width: `${progressDraft[currentMilestone._id] ?? currentMilestone.progress}%` }}
+              />
             </div>
-            <span className="spotlight-progress-text">{currentMilestone.progress}% complete</span>
+            <span className="spotlight-progress-text">
+              {progressDraft[currentMilestone._id] ?? currentMilestone.progress}% complete
+            </span>
           </div>
         </div>
       )}
@@ -272,11 +310,14 @@ const ProjectMilestones = ({ projectId, userRole }) => {
       <div className="milestones-list">
         {milestones.map((milestone) => {
           const statusConfig = getStatusConfig(milestone.status);
+          const draft = progressDraft[milestone._id] ?? milestone.progress;
 
           return (
             <div
               key={milestone._id}
-              className={`milestone-card-premium ${currentMilestone?._id === milestone._id ? 'current-active' : ''} ${milestone.status === 'approved' ? 'completed' : ''}`}
+              className={`milestone-card-premium ${
+                currentMilestone?._id === milestone._id ? 'current-active' : ''
+              } ${milestone.status === 'approved' ? 'completed' : ''}`}
             >
               <StatusStepper currentStatus={milestone.status} />
 
@@ -299,10 +340,10 @@ const ProjectMilestones = ({ projectId, userRole }) => {
               <div className="progress-section-premium">
                 <div className="progress-header-premium">
                   <span className="progress-label">Progress</span>
-                  <span className="progress-percentage-premium">{milestone.progress}%</span>
+                  <span className="progress-percentage-premium">{draft}%</span>
                 </div>
                 <div className="progress-track">
-                  <div className="progress-fill" style={{ width: `${milestone.progress}%` }}>
+                  <div className="progress-fill" style={{ width: `${draft}%` }}>
                     <div className="progress-glow"></div>
                   </div>
                 </div>
@@ -311,23 +352,34 @@ const ProjectMilestones = ({ projectId, userRole }) => {
               {/* ── FREELANCER CONTROLS ── */}
               {userRole === 'freelancer' && (
                 <div className="milestone-controls-premium">
+                  {/* Bug 3 Fix: Show slider for both 'funded' and 'in-progress' statuses */}
                   {(milestone.status === 'in-progress' || milestone.status === 'funded') && (
                     <div className="progress-update-premium">
                       <label>Update Progress</label>
                       <div className="slider-group">
+                        {/* Bug 1 Fix: onChange updates local draft only; API called on mouseUp/touchEnd */}
                         <input
                           type="range" min="0" max="100" step="5"
-                          value={milestone.progress}
-                          onChange={(e) => handleProgressUpdate(milestone._id, e.target.value)}
+                          value={draft}
+                          onChange={(e) =>
+                            setProgressDraft(prev => ({ ...prev, [milestone._id]: Number(e.target.value) }))
+                          }
+                          onMouseUp={(e) => handleProgressUpdate(milestone._id, e.target.value)}
+                          onTouchEnd={(e) => handleProgressUpdate(milestone._id, e.target.value)}
                           disabled={updatingProgress[milestone._id]}
                           className="progress-slider-premium"
                         />
                         <div className="progress-input-group">
+                          {/* Bug 1 Fix: number input calls API on blur only */}
                           <input
                             type="number" min="0" max="100"
-                            value={milestone.progress}
+                            value={draft}
                             onChange={(e) => {
-                              const val = Math.min(100, Math.max(0, e.target.value));
+                              const val = Math.min(100, Math.max(0, Number(e.target.value)));
+                              setProgressDraft(prev => ({ ...prev, [milestone._id]: val }));
+                            }}
+                            onBlur={(e) => {
+                              const val = Math.min(100, Math.max(0, Number(e.target.value)));
                               handleProgressUpdate(milestone._id, val);
                             }}
                             disabled={updatingProgress[milestone._id]}
@@ -349,10 +401,15 @@ const ProjectMilestones = ({ projectId, userRole }) => {
                       </button>
                     )}
 
-                    {/* Submit with note */}
-                    {milestone.status === 'in-progress' && milestone.progress === 100 && (
+                    {/* Bug 2 Fix: Use Number() to avoid string vs number strict equality issue */}
+                    {milestone.status === 'in-progress' && Number(draft) === 100 && (
                       <div style={{ marginTop: '0.75rem' }}>
-                        <label style={{ fontSize: '0.875rem', fontWeight: '600', display: 'block', marginBottom: '0.4rem' }}>
+                        <label style={{
+                          fontSize: '0.875rem',
+                          fontWeight: '600',
+                          display: 'block',
+                          marginBottom: '0.4rem',
+                        }}>
                           Submission note to client (optional)
                         </label>
                         <textarea
@@ -382,7 +439,12 @@ const ProjectMilestones = ({ projectId, userRole }) => {
 
                     {milestone.status === 'revision-requested' && (
                       <div style={{ marginTop: '0.75rem' }}>
-                        <label style={{ fontSize: '0.875rem', fontWeight: '600', display: 'block', marginBottom: '0.4rem' }}>
+                        <label style={{
+                          fontSize: '0.875rem',
+                          fontWeight: '600',
+                          display: 'block',
+                          marginBottom: '0.4rem',
+                        }}>
                           Resubmission note
                         </label>
                         <textarea
@@ -422,7 +484,6 @@ const ProjectMilestones = ({ projectId, userRole }) => {
 
                   {milestone.status === 'submitted' && (
                     <div className="review-actions-premium">
-                      {/* Show freelancer's submission note if present */}
                       {milestone.submissionNotes && (
                         <div style={{
                           marginBottom: '1rem',
@@ -475,12 +536,16 @@ const ProjectMilestones = ({ projectId, userRole }) => {
               <div className="milestone-footer-premium">
                 <span className="footer-date">
                   <span className="footer-icon">📅</span>
-                  Created {new Date(milestone.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  Created {new Date(milestone.createdAt).toLocaleDateString('en-IN', {
+                    day: 'numeric', month: 'short', year: 'numeric',
+                  })}
                 </span>
                 {milestone.completedAt && (
                   <span className="footer-date footer-completed">
                     <span className="footer-icon">✅</span>
-                    Completed {new Date(milestone.completedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    Completed {new Date(milestone.completedAt).toLocaleDateString('en-IN', {
+                      day: 'numeric', month: 'short', year: 'numeric',
+                    })}
                   </span>
                 )}
               </div>

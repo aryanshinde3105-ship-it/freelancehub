@@ -10,12 +10,31 @@ function MyProjects() {
   const [projects, setProjects] = useState([]);
   const [rejectReason, setRejectReason] = useState({});
   const [expandedProject, setExpandedProject] = useState(null);
+  // Bug 4 Fix: Add projectMilestones state so client progress bar shows real data
+  const [projectMilestones, setProjectMilestones] = useState({});
 
   const [showRatingModal, setShowRatingModal] = useState(false);
   const [currentRatingProject, setCurrentRatingProject] = useState(null);
   const [canReviewStatus, setCanReviewStatus] = useState({});
 
   const token = localStorage.getItem('token');
+
+  // Bug 4 Fix: Fetch milestones for a project so progress bar is accurate
+  const fetchMilestonesForProject = async (projectId) => {
+    try {
+      const res = await api.get(`/api/milestones/project/${projectId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      let arr = res.data;
+      if (res.data.milestones) arr = res.data.milestones;
+      else if (res.data.data) arr = res.data.data;
+      if (Array.isArray(arr)) {
+        setProjectMilestones(prev => ({ ...prev, [projectId]: arr }));
+      }
+    } catch (err) {
+      console.error('Failed to fetch milestones for project:', projectId, err);
+    }
+  };
 
   const fetchProjects = async () => {
     try {
@@ -24,9 +43,14 @@ function MyProjects() {
       });
       setProjects(res.data);
 
-      const completedProjects = res.data.filter(p => p.status === 'completed');
-      for (const project of completedProjects) {
-        checkCanReview(project._id);
+      for (const project of res.data) {
+        // Bug 4 Fix: Fetch milestones for milestone-based projects
+        if (project.paymentType === 'milestone-based') {
+          fetchMilestonesForProject(project._id);
+        }
+        if (project.status === 'completed') {
+          checkCanReview(project._id);
+        }
       }
     } catch (err) {
       console.error(err);
@@ -102,7 +126,13 @@ function MyProjects() {
   };
 
   const openMilestoneModal = (projectId) => setExpandedProject(projectId);
-  const closeMilestoneModal = () => setExpandedProject(null);
+
+  // Bug 5 Fix: Refresh milestones when client closes the modal so progress bar updates
+  const closeMilestoneModal = () => {
+    const prev = expandedProject;
+    setExpandedProject(null);
+    if (prev) fetchMilestonesForProject(prev);
+  };
 
   const approveProject = async (projectId) => {
     try {
@@ -189,7 +219,11 @@ function MyProjects() {
 
                 {/* BODY */}
                 <div className="project-card-body">
-                  <ProjectProgress status={project.status} />
+                  {/* Bug 4 Fix: Pass milestones prop so progress bar is accurate for milestone-based projects */}
+                  <ProjectProgress
+                    status={project.status}
+                    milestones={isMilestoneBased ? projectMilestones[project._id] : undefined}
+                  />
 
                   {/* Freelancer Name */}
                   {project.assignedFreelancerId && (
