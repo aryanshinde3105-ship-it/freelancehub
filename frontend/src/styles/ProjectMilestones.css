@@ -434,6 +434,12 @@
   border: var(--border-width) solid var(--color-danger);
 }
 
+.status-cancelled {
+  background: #e5e7eb;
+  color: #6b7280;
+  border: var(--border-width) solid #9ca3af;
+}
+
 .status-revision {
   background: #fed7aa;
   color: #9a3412;

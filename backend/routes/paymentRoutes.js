@@ -12,4 +12,7 @@ router.post('/verify', authMiddleware, paymentController.verifyPayment);
 // Release payment (called when client approves milestone)
 router.post('/release/:milestoneId', authMiddleware, paymentController.releasePayment);
 
+// Refund payment (called when client cancels a funded/paid milestone)
+router.post('/refund/:milestoneId', authMiddleware, paymentController.refundPayment);
+
 module.exports = router;

@@ -42,6 +42,7 @@ const milestoneSchema = new mongoose.Schema(
         'revision-requested',
         'approved',
         'rejected',
+        'cancelled', // Client-cancelled after rejection — unblocks project completion
       ],
       default: 'pending',
     },
@@ -72,6 +73,7 @@ const milestoneSchema = new mongoose.Schema(
       razorpayOrderId: String,
       razorpayPaymentId: String,
       razorpaySignature: String,
+      razorpayRefundId: String,
       paidAt: Date,
       releasedAt: Date,
       refundedAt: Date,

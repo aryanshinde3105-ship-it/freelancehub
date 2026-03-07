@@ -3,7 +3,7 @@ import api from '../api';
 import '../styles/ProjectMilestones.css';
 import MilestonePayment from './MilestonePayment';
 
-// Bug 6 Fix: Added 'revision-requested' and 'rejected' to statusOrder so stepper doesn't go blank
+// Bug 6 Fix: Added 'revision-requested', 'rejected', 'cancelled' to statusOrder so stepper doesn't go blank
 const StatusStepper = ({ currentStatus }) => {
   const steps = [
     { key: 'pending', label: 'Created', icon: '📝' },
@@ -21,14 +21,19 @@ const StatusStepper = ({ currentStatus }) => {
     'under-review',
     'revision-requested',
     'rejected',
+    'cancelled',
     'approved',
   ];
   const currentIndex = statusOrder.indexOf(currentStatus);
 
-  // For revision-requested and rejected, highlight the submitted step as active
-  // so the stepper shows meaningful progress instead of going blank
+  // For revision-requested, rejected, and cancelled — pin the stepper at the
+  // 'submitted' step so it shows meaningful progress instead of going blank
   const getEffectiveIndex = () => {
-    if (currentStatus === 'revision-requested' || currentStatus === 'rejected') {
+    if (
+      currentStatus === 'revision-requested' ||
+      currentStatus === 'rejected' ||
+      currentStatus === 'cancelled'
+    ) {
       return statusOrder.indexOf('submitted');
     }
     return currentIndex;
@@ -156,39 +161,34 @@ const ProjectMilestones = ({ projectId, userRole }) => {
   const handleStatusChange = async (milestoneId, newStatus) => {
     try {
       if (newStatus === 'approved') {
-        await api.post(
+        const { data } = await api.post(
           `/api/payments/release/${milestoneId}`,
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        alert('✅ Milestone approved! Payment released to freelancer.');
-
-        const updated = await api.get(`/api/milestones/project/${projectId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        let updatedArray = updated.data;
-        if (updated.data.milestones) updatedArray = updated.data.milestones;
-        else if (updated.data.data) updatedArray = updated.data.data;
-
-        const allApproved = updatedArray.every(m =>
-          m._id === milestoneId ? true : m.status === 'approved'
-        );
-
-        if (allApproved) {
-          await api.patch(
-            `/api/projects/${projectId}/approve`,
-            {},
-            { headers: { Authorization: `Bearer ${token}` } }
-          );
+        if (data.projectCompleted) {
           alert('🎉 All milestones complete! Project has been marked as completed.');
+        } else {
+          alert('✅ Milestone approved! Payment released to freelancer.');
         }
+      } else if (newStatus === 'cancelled') {
+        const confirmed = window.confirm(
+          'Cancel this milestone? The escrowed payment (if any) will be refunded to you. This cannot be undone.'
+        );
+        if (!confirmed) return;
+        await api.patch(
+          `/api/milestones/${milestoneId}/status`,
+          { status: 'cancelled' },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        alert('🚫 Milestone cancelled. Any escrowed payment has been refunded.');
       } else {
         await api.patch(
           `/api/milestones/${milestoneId}/status`,
           { status: newStatus },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        alert(`Milestone marked as ${newStatus.replace('-', ' ')}`);
+        alert(`Milestone marked as ${newStatus.replace(/-/g, ' ')}`);
       }
       fetchMilestones();
     } catch (err) {
@@ -206,6 +206,7 @@ const ProjectMilestones = ({ projectId, userRole }) => {
       'under-review': { icon: '👀', label: 'Under Review', class: 'status-under-review' },
       approved: { icon: '✅', label: 'Approved', class: 'status-approved' },
       rejected: { icon: '❌', label: 'Rejected', class: 'status-rejected' },
+      cancelled: { icon: '🚫', label: 'Cancelled', class: 'status-cancelled' },
       'revision-requested': { icon: '🔄', label: 'Revision Requested', class: 'status-revision' },
     };
     return configs[status] || { icon: '•', label: status, class: 'status-default' };
@@ -317,7 +318,7 @@ const ProjectMilestones = ({ projectId, userRole }) => {
               key={milestone._id}
               className={`milestone-card-premium ${
                 currentMilestone?._id === milestone._id ? 'current-active' : ''
-              } ${milestone.status === 'approved' ? 'completed' : ''}`}
+              } ${milestone.status === 'approved' || milestone.status === 'cancelled' ? 'completed' : ''}`}
             >
               <StatusStepper currentStatus={milestone.status} />
 
@@ -516,6 +517,36 @@ const ProjectMilestones = ({ projectId, userRole }) => {
                         onClick={() => handleStatusChange(milestone._id, 'rejected')}
                       >
                         <span className="btn-icon">✗</span> Reject
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Rejected milestone: client can give another chance or cancel it */}
+                  {milestone.status === 'rejected' && (
+                    <div className="review-actions-premium">
+                      <div style={{
+                        marginBottom: '0.75rem',
+                        padding: '0.75rem',
+                        background: '#fff7ed',
+                        border: '1px solid #fed7aa',
+                        borderRadius: '8px',
+                        fontSize: '0.875rem',
+                        color: '#9a3412',
+                      }}>
+                        ⚠️ This milestone was <strong>rejected</strong>. You can reopen it for
+                        revision, or cancel it to unblock the rest of the project.
+                      </div>
+                      <button
+                        className="btn-premium btn-revision"
+                        onClick={() => handleStatusChange(milestone._id, 'revision-requested')}
+                      >
+                        <span className="btn-icon">↻</span> Reopen for Revision
+                      </button>
+                      <button
+                        className="btn-premium btn-reject"
+                        onClick={() => handleStatusChange(milestone._id, 'cancelled')}
+                      >
+                        <span className="btn-icon">🚫</span> Cancel Milestone
                       </button>
                     </div>
                   )}

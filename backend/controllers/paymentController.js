@@ -159,10 +159,21 @@ const releasePayment = async (req, res) => {
 
     await milestone.save();
 
+    // Auto-complete the project when every milestone is approved or cancelled
+    const allMilestones = await Milestone.find({ projectId: milestone.projectId._id });
+    const allResolved = allMilestones.every(
+      (m) => m.status === 'approved' || m.status === 'cancelled'
+    );
+    if (allResolved && allMilestones.length > 0) {
+      milestone.projectId.status = 'completed';
+      await milestone.projectId.save();
+    }
+
     res.json({
       success: true,
       message: 'Payment released to freelancer',
       milestone,
+      projectCompleted: allResolved,
     });
 
   } catch (error) {
@@ -171,8 +182,67 @@ const releasePayment = async (req, res) => {
   }
 };
 
+/* =====================
+   REFUND PAYMENT
+   Called when client cancels a milestone that was already paid (status = 'paid').
+   Issues a full refund via Razorpay and marks the milestone payment as 'refunded'.
+   ===================== */
+const refundPayment = async (req, res) => {
+  try {
+    const { milestoneId } = req.params;
+
+    const milestone = await Milestone.findById(milestoneId).populate('projectId');
+
+    if (!milestone) {
+      return res.status(404).json({ message: 'Milestone not found' });
+    }
+
+    // Only the project client may request a refund
+    if (milestone.projectId.clientId.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Not authorized' });
+    }
+
+    // Only refund if a captured payment exists
+    if (milestone.payment.status !== 'paid') {
+      return res.status(400).json({
+        message: `Cannot refund a payment with status: ${milestone.payment.status}`,
+      });
+    }
+
+    if (!milestone.payment.razorpayPaymentId) {
+      return res.status(400).json({ message: 'No Razorpay payment ID found on this milestone' });
+    }
+
+    // Issue full refund via Razorpay
+    const refund = await razorpay.payments.refund(milestone.payment.razorpayPaymentId, {
+      amount: milestone.amount * 100, // full refund in paise
+      notes: {
+        reason: 'Milestone cancelled by client',
+        milestoneId: milestoneId.toString(),
+      },
+    });
+
+    // Persist refund details
+    milestone.payment.status = 'refunded';
+    milestone.payment.refundedAt = new Date();
+    milestone.payment.razorpayRefundId = refund.id;
+    await milestone.save();
+
+    res.json({
+      success: true,
+      message: 'Refund initiated successfully',
+      refundId: refund.id,
+      milestone,
+    });
+  } catch (error) {
+    console.error('Refund error:', error);
+    res.status(500).json({ message: 'Failed to initiate refund', error: error.message });
+  }
+};
+
 module.exports = {
   createOrder,
   verifyPayment,
   releasePayment,
+  refundPayment,
 };

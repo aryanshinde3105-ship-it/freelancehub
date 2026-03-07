@@ -1,5 +1,11 @@
 const Milestone = require('../models/Milestone');
 const Project = require('../models/Project');
+const Razorpay = require('razorpay');
+
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID,
+  key_secret: process.env.RAZORPAY_KEY_SECRET,
+});
 
 /* =====================
    CREATE MILESTONE
@@ -218,7 +224,8 @@ exports.updateProgress = async (req, res) => {
 /* =====================
    UPDATE MILESTONE STATUS
    - Freelancer: funded → in-progress, in-progress → submitted, revision-requested → submitted
-   - Client: submitted → revision-requested, submitted → rejected
+   - Client: submitted → revision-requested | rejected
+             rejected  → revision-requested | cancelled
    (Client approve → handled separately via /api/payments/release/:id)
 ===================== */
 exports.updateStatus = async (req, res) => {
@@ -226,7 +233,7 @@ exports.updateStatus = async (req, res) => {
     const { id } = req.params;
     const { status, submissionNote } = req.body;
 
-    const allowedStatuses = ['in-progress', 'submitted', 'revision-requested', 'rejected'];
+    const allowedStatuses = ['in-progress', 'submitted', 'revision-requested', 'rejected', 'cancelled'];
     if (!allowedStatuses.includes(status)) {
       return res.status(400).json({ message: `Invalid status: ${status}` });
     }
@@ -249,6 +256,8 @@ exports.updateStatus = async (req, res) => {
 
     const clientTransitions = {
       'submitted': ['revision-requested', 'rejected'],
+      // After rejecting, client can reopen for revision or cancel the milestone entirely
+      'rejected': ['revision-requested', 'cancelled'],
     };
 
     if (isFreelancer) {
@@ -270,12 +279,52 @@ exports.updateStatus = async (req, res) => {
           message: `Invalid transition: ${milestone.status} → ${status} for client`,
         });
       }
+
+      if (status === 'cancelled') {
+        milestone.completedAt = new Date();
+        // Initiate a real Razorpay refund if the client had already funded this milestone
+        if (
+          (milestone.payment.status === 'paid' || milestone.payment.status === 'held') &&
+          milestone.payment.razorpayPaymentId
+        ) {
+          try {
+            const refund = await razorpay.payments.refund(milestone.payment.razorpayPaymentId, {
+              amount: milestone.amount * 100, // full refund in paise
+              notes: {
+                reason: 'Milestone cancelled by client',
+                milestoneId: milestone._id.toString(),
+              },
+            });
+            milestone.payment.status = 'refunded';
+            milestone.payment.refundedAt = new Date();
+            milestone.payment.razorpayRefundId = refund.id;
+          } catch (refundErr) {
+            // Log but don't block the cancellation — admin can process manually
+            console.error('Razorpay refund failed during milestone cancel:', refundErr.message);
+            milestone.payment.status = 'refunded'; // mark for manual processing
+            milestone.payment.refundedAt = new Date();
+          }
+        }
+      }
     } else {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
     milestone.status = status;
     await milestone.save();
+
+    // After cancelling, check if all milestones for this project are now resolved
+    // (approved or cancelled). If so, mark the project as completed.
+    if (status === 'cancelled') {
+      const allMilestones = await Milestone.find({ projectId: project._id });
+      const allResolved = allMilestones.every(
+        (m) => m.status === 'approved' || m.status === 'cancelled'
+      );
+      if (allResolved && allMilestones.length > 0) {
+        project.status = 'completed';
+        await project.save();
+      }
+    }
 
     res.json({ message: `Milestone status updated to ${status}`, milestone });
   } catch (error) {
