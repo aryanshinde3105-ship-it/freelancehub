@@ -1,7 +1,183 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import api from '../api';
 import '../styles/ProjectMilestones.css';
 import MilestonePayment from './MilestonePayment';
+
+/* ─── Submission Modal ──────────────────────────────────────────────────── */
+const SubmitWorkModal = ({ milestone, onClose, onSuccess }) => {
+  const [files, setFiles] = useState([]);
+  const [message, setMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+  const fileInputRef = useRef(null);
+  const token = localStorage.getItem('token');
+
+  const handleFileChange = (e) => {
+    const selected = Array.from(e.target.files);
+    setFiles(selected);
+    setError('');
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (files.length === 0) {
+      setError('Please attach at least one file.');
+      return;
+    }
+    setSubmitting(true);
+    setError('');
+    try {
+      const formData = new FormData();
+      files.forEach((f) => formData.append('milestoneFile', f));
+      if (message.trim()) formData.append('message', message.trim());
+
+      await api.post(`/api/milestones/${milestone._id}/submit`, formData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+
+      onSuccess();
+    } catch (err) {
+      setError(err.response?.data?.message || 'Submission failed. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div
+      className="submit-modal-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="submit-modal-title"
+      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
+    >
+      <div className="submit-modal">
+        <div className="submit-modal-header">
+          <h3 id="submit-modal-title">📤 Submit Work</h3>
+          <button className="submit-modal-close" onClick={onClose} aria-label="Close">&times;</button>
+        </div>
+
+        <p className="submit-modal-subtitle">
+          <strong>{milestone.title}</strong> — attach your deliverable files and an optional note for the client.
+        </p>
+
+        <form onSubmit={handleSubmit}>
+          <div className="submit-modal-field">
+            <label className="submit-modal-label">Files <span style={{ color: 'red' }}>*</span></label>
+            <div
+              className="file-drop-zone"
+              onClick={() => fileInputRef.current?.click()}
+            >
+              {files.length === 0 ? (
+                <>
+                  <span className="file-drop-icon">📁</span>
+                  <span>Click to choose files</span>
+                  <span className="file-drop-hint">PDF, PNG, JPG, ZIP · Max 10 MB each</span>
+                </>
+              ) : (
+                <ul className="file-list">
+                  {files.map((f, i) => (
+                    <li key={i}>✅ {f.name} <span className="file-size">({(f.size / 1024).toFixed(1)} KB)</span></li>
+                  ))}
+                </ul>
+              )}
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              name="milestoneFile"
+              multiple
+              accept=".pdf,.png,.jpg,.jpeg,.zip"
+              style={{ display: 'none' }}
+              onChange={handleFileChange}
+            />
+          </div>
+
+          <div className="submit-modal-field">
+            <label className="submit-modal-label">Message to client <span className="optional">(optional)</span></label>
+            <textarea
+              className="submit-modal-textarea"
+              rows={4}
+              placeholder="Describe what you've completed, any notes for the client…"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+            />
+          </div>
+
+          {error && <p className="submit-modal-error">{error}</p>}
+
+          <div className="submit-modal-actions">
+            <button type="button" className="btn-premium btn-cancel-modal" onClick={onClose} disabled={submitting}>
+              Cancel
+            </button>
+            <button type="submit" className="btn-premium btn-submit" disabled={submitting}>
+              {submitting ? 'Submitting…' : <><span className="btn-icon">📤</span> Submit for Review</>}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+/* ─── Submissions History ───────────────────────────────────────────────── */
+const SubmissionsHistory = ({ submissions }) => {
+  if (!submissions || submissions.length === 0) return null;
+
+  const formatRelative = (dateStr) => {
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return `${mins} minute${mins !== 1 ? 's' : ''} ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs} hour${hrs !== 1 ? 's' : ''} ago`;
+    const days = Math.floor(hrs / 24);
+    if (days < 30) return `${days} day${days !== 1 ? 's' : ''} ago`;
+    return new Date(dateStr).toLocaleDateString('en-IN', {
+      day: 'numeric', month: 'short', year: 'numeric',
+    });
+  };
+
+  return (
+    <div className="submissions-history">
+      <h5 className="submissions-heading">📦 Deliverables</h5>
+      <div className="submissions-list">
+        {submissions.map((sub, idx) => (
+          <div key={sub._id || idx} className="submission-entry">
+            <div className="submission-label">
+              <span className="submission-index">Submission {idx + 1}</span>
+              <span className="submission-time">{formatRelative(sub.submittedAt)}</span>
+            </div>
+            <ul className="submission-files">
+              {sub.files.map((file, fi) => (
+                <li key={fi}>
+                  <a
+                    href={file.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="submission-file-link"
+                  >
+                    <span className="file-icon">📄</span>
+                    {file.filename}
+                  </a>
+                </li>
+              ))}
+            </ul>
+            {sub.message && (
+              <div className="submission-note">
+                <span className="submission-note-label">💬 Note from freelancer</span>
+                <p className="submission-message">{sub.message}</p>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 // Bug 6 Fix: Added 'revision-requested', 'rejected', 'cancelled' to statusOrder so stepper doesn't go blank
 const StatusStepper = ({ currentStatus }) => {
@@ -74,9 +250,9 @@ const ProjectMilestones = ({ projectId, userRole }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [updatingProgress, setUpdatingProgress] = useState({});
-  const [submissionNotes, setSubmissionNotes] = useState({});
   // Bug 1 Fix: Local draft state so slider doesn't spam API on every drag tick
   const [progressDraft, setProgressDraft] = useState({});
+  const [submitModal, setSubmitModal] = useState(null); // milestone object or null
   const token = localStorage.getItem('token');
 
   useEffect(() => {
@@ -142,23 +318,13 @@ const ProjectMilestones = ({ projectId, userRole }) => {
     }
   };
 
-  const handleSubmit = async (milestoneId) => {
-    const note = submissionNotes[milestoneId] || '';
-    try {
-      await api.patch(
-        `/api/milestones/${milestoneId}/status`,
-        { status: 'submitted', submissionNote: note },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      alert('📤 Work submitted for client review.');
-      fetchMilestones();
-    } catch (err) {
-      console.error('Error submitting milestone:', err);
-      alert(err.response?.data?.message || 'Failed to submit');
-    }
+  const handleSubmitSuccess = () => {
+    setSubmitModal(null);
+    alert('📤 Work submitted for client review.');
+    fetchMilestones();
   };
 
-  const handleStatusChange = async (milestoneId, newStatus) => {
+  const handleStatusChange = async (milestoneId, newStatus, extra = {}) => {
     try {
       if (newStatus === 'approved') {
         const { data } = await api.post(
@@ -182,6 +348,19 @@ const ProjectMilestones = ({ projectId, userRole }) => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
         alert('🚫 Milestone cancelled. Any escrowed payment has been refunded.');
+      } else if (newStatus === 'revision-requested') {
+        const revisionNotes = extra.revisionNotes ||
+          window.prompt('Please describe what needs to be revised:');
+        if (!revisionNotes || !revisionNotes.trim()) {
+          alert('Revision notes are required.');
+          return;
+        }
+        await api.patch(
+          `/api/milestones/${milestoneId}/status`,
+          { status: 'revision-requested', revisionNotes },
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        alert('🔄 Revision requested.');
       } else {
         await api.patch(
           `/api/milestones/${milestoneId}/status`,
@@ -243,6 +422,14 @@ const ProjectMilestones = ({ projectId, userRole }) => {
 
   return (
     <div className="project-milestones-container">
+      {/* Submit Work Modal */}
+      {submitModal && (
+        <SubmitWorkModal
+          milestone={submitModal}
+          onClose={() => setSubmitModal(null)}
+          onSuccess={handleSubmitSuccess}
+        />
+      )}
       {/* Overview */}
       <div className="milestones-overview-premium">
         <div className="overview-header">
@@ -402,75 +589,15 @@ const ProjectMilestones = ({ projectId, userRole }) => {
                       </button>
                     )}
 
-                    {/* Bug 2 Fix: Use Number() to avoid string vs number strict equality issue */}
-                    {milestone.status === 'in-progress' && Number(draft) === 100 && (
-                      <div style={{ marginTop: '0.75rem' }}>
-                        <label style={{
-                          fontSize: '0.875rem',
-                          fontWeight: '600',
-                          display: 'block',
-                          marginBottom: '0.4rem',
-                        }}>
-                          Submission note to client (optional)
-                        </label>
-                        <textarea
-                          rows={3}
-                          placeholder="Describe what you've completed, any notes for the client..."
-                          value={submissionNotes[milestone._id] || ''}
-                          onChange={(e) =>
-                            setSubmissionNotes(prev => ({ ...prev, [milestone._id]: e.target.value }))
-                          }
-                          style={{
-                            width: '100%',
-                            padding: '0.5rem',
-                            borderRadius: '6px',
-                            border: '1px solid #ddd',
-                            fontSize: '0.875rem',
-                            marginBottom: '0.5rem',
-                          }}
-                        />
-                        <button
-                          className="btn-premium btn-submit"
-                          onClick={() => handleSubmit(milestone._id)}
-                        >
-                          <span className="btn-icon">📤</span> Submit for Review
-                        </button>
-                      </div>
-                    )}
-
-                    {milestone.status === 'revision-requested' && (
-                      <div style={{ marginTop: '0.75rem' }}>
-                        <label style={{
-                          fontSize: '0.875rem',
-                          fontWeight: '600',
-                          display: 'block',
-                          marginBottom: '0.4rem',
-                        }}>
-                          Resubmission note
-                        </label>
-                        <textarea
-                          rows={3}
-                          placeholder="Describe changes made..."
-                          value={submissionNotes[milestone._id] || ''}
-                          onChange={(e) =>
-                            setSubmissionNotes(prev => ({ ...prev, [milestone._id]: e.target.value }))
-                          }
-                          style={{
-                            width: '100%',
-                            padding: '0.5rem',
-                            borderRadius: '6px',
-                            border: '1px solid #ddd',
-                            fontSize: '0.875rem',
-                            marginBottom: '0.5rem',
-                          }}
-                        />
-                        <button
-                          className="btn-premium btn-resubmit"
-                          onClick={() => handleSubmit(milestone._id)}
-                        >
-                          <span className="btn-icon">🔄</span> Resubmit
-                        </button>
-                      </div>
+                    {/* Submit Work button — visible for in-progress and revision-requested */}
+                    {(milestone.status === 'in-progress' || milestone.status === 'revision-requested') && (
+                      <button
+                        className="btn-premium btn-submit"
+                        onClick={() => setSubmitModal(milestone)}
+                      >
+                        <span className="btn-icon">📤</span>
+                        {milestone.status === 'revision-requested' ? 'Resubmit Work' : 'Submit Work'}
+                      </button>
                     )}
                   </div>
                 </div>
@@ -483,9 +610,13 @@ const ProjectMilestones = ({ projectId, userRole }) => {
                     <MilestonePayment milestone={milestone} onPaymentSuccess={fetchMilestones} />
                   )}
 
-                  {milestone.status === 'submitted' && (
+                  {/* Review actions: only shown when status is submitted AND at least one submission exists */}
+                  {milestone.status === 'submitted' &&
+                   milestone.submissions &&
+                   milestone.submissions.length > 0 && (
                     <div className="review-actions-premium">
-                      {milestone.submissionNotes && (
+                      {/* Show message from the latest submission, if any */}
+                      {milestone.submissions[milestone.submissions.length - 1].message && (
                         <div style={{
                           marginBottom: '1rem',
                           padding: '0.75rem',
@@ -496,7 +627,9 @@ const ProjectMilestones = ({ projectId, userRole }) => {
                           color: '#14532d',
                         }}>
                           <strong>📝 Freelancer's note:</strong>
-                          <p style={{ margin: '0.25rem 0 0' }}>{milestone.submissionNotes}</p>
+                          <p style={{ margin: '0.25rem 0 0' }}>
+                            {milestone.submissions[milestone.submissions.length - 1].message}
+                          </p>
                         </div>
                       )}
 
@@ -562,6 +695,11 @@ const ProjectMilestones = ({ projectId, userRole }) => {
                     </div>
                   )}
                 </div>
+              )}
+
+              {/* Submissions history — visible to both roles */}
+              {milestone.submissions && milestone.submissions.length > 0 && (
+                <SubmissionsHistory submissions={milestone.submissions} />
               )}
 
               <div className="milestone-footer-premium">

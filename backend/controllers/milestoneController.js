@@ -1,6 +1,12 @@
 const Milestone = require('../models/Milestone');
 const Project = require('../models/Project');
 const Razorpay = require('razorpay');
+const { uploadFileToAzure } = require('../utils/azureStorage');
+const {
+  notifyMilestoneSubmitted,
+  notifyRevisionRequested,
+  notifyMilestoneRejected,
+} = require('../utils/notificationHelper');
 
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
@@ -223,19 +229,24 @@ exports.updateProgress = async (req, res) => {
 
 /* =====================
    UPDATE MILESTONE STATUS
-   - Freelancer: funded → in-progress, in-progress → submitted, revision-requested → submitted
-   - Client: submitted → revision-requested | rejected
-             rejected  → revision-requested | cancelled
-   (Client approve → handled separately via /api/payments/release/:id)
+   Freelancer (via updateStatus):
+     funded → in-progress
+   Freelancer (via submitMilestone endpoint — NOT here):
+     in-progress → submitted
+     revision-requested → submitted
+   Client:
+     submitted → approved | revision-requested | rejected
+     rejected  → cancelled  (refund path)
+   Payment release for 'approved' is also triggered via /api/payments/release/:id.
 ===================== */
 exports.updateStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status, submissionNote } = req.body;
+    const { status, clientFeedback, revisionNotes } = req.body;
 
-    const allowedStatuses = ['in-progress', 'submitted', 'revision-requested', 'rejected', 'cancelled'];
+    const allowedStatuses = ['in-progress', 'revision-requested', 'rejected', 'cancelled'];
     if (!allowedStatuses.includes(status)) {
-      return res.status(400).json({ message: `Invalid status: ${status}` });
+      return res.status(400).json({ message: `Invalid status: ${status}. To approve a milestone use POST /api/payments/release/:id` });
     }
 
     const milestone = await Milestone.findById(id).populate('projectId');
@@ -248,36 +259,56 @@ exports.updateStatus = async (req, res) => {
     const isClient = project.clientId.toString() === req.user.id;
     const isFreelancer = project.assignedFreelancerId?.toString() === req.user.id;
 
+    // Freelancer may only start work via updateStatus.
+    // Submitting work (in-progress/revision-requested → submitted) must go through POST /:id/submit.
     const freelancerTransitions = {
       'funded': 'in-progress',
-      'in-progress': 'submitted',
-      'revision-requested': 'submitted',
     };
 
+    // Client reviews a submission or cancels a rejected milestone.
     const clientTransitions = {
       'submitted': ['revision-requested', 'rejected'],
-      // After rejecting, client can reopen for revision or cancel the milestone entirely
-      'rejected': ['revision-requested', 'cancelled'],
+      // After rejecting, client can cancel the milestone entirely (triggers refund)
+      'rejected': ['cancelled'],
     };
 
     if (isFreelancer) {
       if (freelancerTransitions[milestone.status] !== status) {
         return res.status(400).json({
-          message: `Invalid transition: ${milestone.status} → ${status} for freelancer`,
+          message: `Invalid transition: ${milestone.status} → ${status} for freelancer. To submit work use POST /:id/submit.`,
         });
       }
       if (status === 'in-progress') {
         milestone.startedAt = new Date();
-      }
-      if (status === 'submitted' && submissionNote !== undefined) {
-        milestone.submissionNotes = submissionNote;
-        milestone.submittedAt = new Date();
       }
     } else if (isClient) {
       if (!clientTransitions[milestone.status]?.includes(status)) {
         return res.status(400).json({
           message: `Invalid transition: ${milestone.status} → ${status} for client`,
         });
+      }
+
+      milestone.reviewedAt = new Date();
+
+      if (status === 'revision-requested') {
+        if (!revisionNotes) {
+          return res.status(400).json({ message: 'revisionNotes is required when requesting a revision' });
+        }
+        milestone.revisionNotes = revisionNotes;
+      }
+
+      if (status === 'rejected') {
+        if (clientFeedback !== undefined) milestone.clientFeedback = clientFeedback;
+      }
+
+      // Notify the freelancer of the client's decision
+      const freelancerId = project.assignedFreelancerId;
+      if (freelancerId) {
+        if (status === 'revision-requested') {
+          await notifyRevisionRequested(freelancerId, milestone.title, project.title, project._id, revisionNotes);
+        } else if (status === 'rejected') {
+          await notifyMilestoneRejected(freelancerId, milestone.title, project.title, project._id);
+        }
       }
 
       if (status === 'cancelled') {
@@ -313,8 +344,8 @@ exports.updateStatus = async (req, res) => {
     milestone.status = status;
     await milestone.save();
 
-    // After cancelling, check if all milestones for this project are now resolved
-    // (approved or cancelled). If so, mark the project as completed.
+    // After cancelled, check if all milestones for this project are now resolved.
+    // (Approval + project completion is handled by releasePayment.)
     if (status === 'cancelled') {
       const allMilestones = await Milestone.find({ projectId: project._id });
       const allResolved = allMilestones.every(
@@ -333,6 +364,76 @@ exports.updateStatus = async (req, res) => {
   }
 };
 
+/* =====================
+   SUBMIT MILESTONE WORK
+   Freelancer uploads deliverable files for a milestone.
+   Supports multiple submissions (revisions).
+===================== */
+exports.submitMilestone = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { message } = req.body;
+
+    const milestone = await Milestone.findById(id).populate('projectId');
+
+    if (!milestone) {
+      return res.status(404).json({ message: 'Milestone not found' });
+    }
+
+    const project = milestone.projectId;
+
+    // Only the assigned freelancer may submit
+    if (project.assignedFreelancerId?.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Only the assigned freelancer can submit work' });
+    }
+
+    // Milestone must be in a state where submission makes sense
+    const submittableStatuses = ['funded', 'in-progress', 'revision-requested'];
+    if (!submittableStatuses.includes(milestone.status)) {
+      return res.status(400).json({
+        message: `Cannot submit work for a milestone with status: ${milestone.status}`,
+      });
+    }
+
+    // req.files is populated by milestoneUpload (field name: milestoneFile)
+    if (!req.files || req.files.length === 0) {
+      return res.status(400).json({ message: 'At least one file is required for submission' });
+    }
+
+    // Upload each file to Azure and collect results
+    const uploadedFiles = [];
+    for (const file of req.files) {
+      const url = await uploadFileToAzure(file.filename, file.path, file.mimetype);
+      uploadedFiles.push({ filename: file.originalname, url });
+    }
+
+    // Append new submission entry (preserves full revision history)
+    milestone.submissions.push({
+      files: uploadedFiles,
+      message: message || '',
+      submittedBy: req.user.id,
+      submittedAt: new Date(),
+    });
+
+    // Transition milestone to submitted
+    milestone.status = 'submitted';
+    milestone.submittedAt = new Date();
+    if (milestone.progress < 100) {
+      milestone.progress = 100;
+    }
+
+    await milestone.save();
+
+    // Notify the client
+    await notifyMilestoneSubmitted(project.clientId, milestone.title, project.title, project._id);
+
+    res.json({ message: 'Submission recorded successfully', milestone });
+  } catch (error) {
+    console.error('Submit milestone error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
 module.exports = {
   createMilestone: exports.createMilestone,
   getProjectMilestones: exports.getProjectMilestones,
@@ -341,4 +442,5 @@ module.exports = {
   deleteMilestone: exports.deleteMilestone,
   updateProgress: exports.updateProgress,
   updateStatus: exports.updateStatus,
+  submitMilestone: exports.submitMilestone,
 };

@@ -2,6 +2,7 @@ const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const Milestone = require('../models/Milestone');
 const Project = require('../models/Project');
+const { notifyMilestoneApproved } = require('../utils/notificationHelper');
 
 // Initialize Razorpay
 const razorpay = new Razorpay({
@@ -151,6 +152,13 @@ const releasePayment = async (req, res) => {
       return res.status(400).json({ message: 'Milestone not paid yet' });
     }
 
+    // Milestone must be submitted before the client can approve and release payment
+    if (milestone.status !== 'submitted') {
+      return res.status(400).json({
+        message: `Cannot release payment: milestone must be submitted for review first (current status: ${milestone.status})`,
+      });
+    }
+
     // Mark as released (in real app, you'd transfer to freelancer's account)
     milestone.payment.status = 'released';
     milestone.payment.releasedAt = new Date();
@@ -158,6 +166,16 @@ const releasePayment = async (req, res) => {
     milestone.completedAt = new Date();
 
     await milestone.save();
+
+    // Notify the freelancer that payment has been released
+    if (milestone.projectId.assignedFreelancerId) {
+      await notifyMilestoneApproved(
+        milestone.projectId.assignedFreelancerId,
+        milestone.title,
+        milestone.projectId.title,
+        milestone.projectId._id
+      );
+    }
 
     // Auto-complete the project when every milestone is approved or cancelled
     const allMilestones = await Milestone.find({ projectId: milestone.projectId._id });

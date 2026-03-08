@@ -59,4 +59,8 @@ const upload = multer({
   },
 });
 
+// Pre-configured middleware for milestone deliverable submissions (up to 10 files)
+const milestoneUpload = upload.array('milestoneFile', 10);
+
 module.exports = upload;
+module.exports.milestoneUpload = milestoneUpload;

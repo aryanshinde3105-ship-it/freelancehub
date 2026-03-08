@@ -68,6 +68,31 @@ const milestoneSchema = new mongoose.Schema(
       },
     ],
 
+    // Submission history — one entry per submit/revision cycle
+    submissions: [
+      {
+        files: [
+          {
+            filename: { type: String, required: true },
+            url: { type: String, required: true },
+          },
+        ],
+        message: {
+          type: String,
+          default: '',
+        },
+        submittedBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'User',
+          required: true,
+        },
+        submittedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+
     // Razorpay payment tracking
     payment: {
       razorpayOrderId: String,

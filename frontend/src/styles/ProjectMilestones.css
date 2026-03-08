@@ -3,6 +3,264 @@
    Premium SaaS Milestone UI
    ═══════════════════════════════════════════════════════════════ */
 
+/* ─── Submit Work Modal ─────────────────────────────────────── */
+.submit-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: var(--space-4);
+}
+
+.submit-modal {
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-xl, 0 20px 60px rgba(0,0,0,0.25));
+  width: 100%;
+  max-width: 520px;
+  padding: var(--space-6);
+  animation: modalFadeIn 0.18s ease;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(-12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.submit-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+.submit-modal-header h3 {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+}
+
+.submit-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0 var(--space-1);
+}
+
+.submit-modal-close:hover { color: var(--text-primary); }
+
+.submit-modal-subtitle {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  margin: 0 0 var(--space-5);
+}
+
+.submit-modal-field {
+  margin-bottom: var(--space-4);
+}
+
+.submit-modal-label {
+  display: block;
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  margin-bottom: var(--space-2);
+  color: var(--text-primary);
+}
+
+.submit-modal-label .optional {
+  font-weight: var(--font-normal);
+  color: var(--text-muted);
+}
+
+.file-drop-zone {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--space-6) var(--space-4);
+  text-align: center;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  transition: border-color var(--transition-base), background var(--transition-base);
+}
+
+.file-drop-zone:hover {
+  border-color: var(--color-primary, #6366f1);
+  background: var(--bg-secondary);
+}
+
+.file-drop-icon { font-size: 1.75rem; }
+
+.file-drop-hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.file-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.file-list li {
+  padding: var(--space-1) 0;
+  font-size: var(--text-sm);
+  color: var(--text-primary);
+}
+
+.file-size { color: var(--text-muted); }
+
+.submit-modal-textarea {
+  width: 100%;
+  padding: var(--space-3);
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-family: var(--font-sans);
+  resize: vertical;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  box-sizing: border-box;
+}
+
+.submit-modal-textarea:focus {
+  outline: none;
+  border-color: var(--color-primary, #6366f1);
+}
+
+.submit-modal-error {
+  font-size: var(--text-sm);
+  color: var(--color-danger, #ef4444);
+  margin: 0 0 var(--space-3);
+}
+
+.submit-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+.btn-cancel-modal {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: var(--border-width) solid var(--border-color);
+}
+
+.btn-cancel-modal:hover {
+  background: var(--bg-tertiary, #e5e7eb);
+}
+
+/* ─── Submissions History ───────────────────────────────────── */
+.submissions-history {
+  margin: var(--space-5) 0 var(--space-2);
+  border-top: var(--border-width) solid var(--border-color);
+  padding-top: var(--space-4);
+}
+
+.submissions-heading {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+  margin: 0 0 var(--space-3);
+}
+
+.submissions-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.submission-entry {
+  background: var(--bg-secondary);
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+}
+
+.submission-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+.submission-index {
+  font-size: var(--text-sm);
+  font-weight: var(--font-semibold);
+  color: var(--text-primary);
+}
+
+.submission-time {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.submission-message {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: var(--space-1) 0 0;
+  line-height: 1.5;
+}
+
+.submission-note {
+  margin-top: var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--bg-primary);
+  border-left: 3px solid var(--color-primary, #6366f1);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+}
+
+.submission-note-label {
+  display: block;
+  font-size: var(--text-xs);
+  font-weight: var(--font-semibold);
+  color: var(--text-muted);
+  margin-bottom: var(--space-1);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.submission-files {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.submission-file-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  color: var(--color-primary, #6366f1);
+  text-decoration: none;
+  font-weight: var(--font-medium);
+  word-break: break-all;
+}
+
+.submission-file-link:hover {
+  text-decoration: underline;
+}
+
+.submission-file-link .file-icon {
+  flex-shrink: 0;
+}
+
 /* Main Container */
 .project-milestones-container {
   margin: 0;
