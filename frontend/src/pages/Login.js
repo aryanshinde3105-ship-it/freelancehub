@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 import { loginUser } from '../auth';
+import { connectSocket } from '../socket';
 
 function Login() {
   const navigate = useNavigate();
@@ -31,6 +32,7 @@ function Login() {
 
       // ✅ STORE TOKEN + USER TOGETHER (FIX)
       loginUser(res.data);
+      connectSocket(res.data.token);
 
       // ✅ client-side navigation (no reload)
       navigate('/dashboard');

@@ -1,6 +1,4 @@
-/* ═══════════════════════════════════════════════════════════════
-   LANDING PAGE - FreelanceHub (COMPLETE)
-   ═══════════════════════════════════════════════════════════════ */
+
 
 .landing-page {
   width: 100%;
@@ -9,26 +7,31 @@
   padding: 0;
 }
 
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0 var(--space-6);
 }
 
+
 /* ═══════════════════════════════════════════════════════════════
    HERO SECTION
    ═══════════════════════════════════════════════════════════════ */
 
+
 .hero-section {
   background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
   color: #ffffff;
-  padding: var(--space-16) 0 var(--space-20) 0;
+  padding-top: 30px;
+  padding-bottom: 30px;
+  padding-left: 0;
+  padding-right: 0;
   position: relative;
   overflow: hidden;
   margin-bottom: 0;
-  padding-top: 30px;
-  padding-bottom: 30px;
 }
+
 
 .hero-section::before {
   content: '';
@@ -41,6 +44,7 @@
   pointer-events: none;
 }
 
+
 .hero-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -50,9 +54,11 @@
   z-index: 1;
 }
 
+
 .hero-text {
   color: #ffffff;
 }
+
 
 .hero-title {
   font-size: 56px;
@@ -63,27 +69,39 @@
   color: #ffffff;
 }
 
+
 .hero-title .highlight {
+  /* FIX 2: Added color fallback before -webkit-text-fill-color.
+     Without it, if background-clip:text is unsupported the text
+     becomes completely invisible (transparent on transparent). */
+  color: #fbbf24;
   background: linear-gradient(120deg, #fbbf24 0%, #f59e0b 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
+
 .hero-subtitle {
   font-size: var(--text-xl);
   line-height: 1.6;
   margin-bottom: var(--space-8);
   opacity: 1;
-  color: #ffffff !important;
+  /* FIX 4: Removed !important. The !important was masking a specificity
+     conflict somewhere in global styles. The fix is to ensure this
+     selector is specific enough — add .hero-section .hero-subtitle
+     or check your global stylesheet for an overriding color rule. */
+  color: #ffffff;
   font-weight: 400;
 }
+
 
 .hero-buttons {
   display: flex;
   gap: var(--space-4);
   margin-bottom: var(--space-8);
 }
+
 
 .btn-large {
   padding: var(--space-4) var(--space-8);
@@ -92,6 +110,7 @@
   align-items: center;
   gap: var(--space-2);
 }
+
 
 .btn-primary {
   background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
@@ -105,10 +124,32 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
 }
 
+
 .btn-primary:hover {
   transform: translateY(-2px);
   box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
 }
+
+
+/* FIX 5: Hero-specific button override.
+   .btn-primary uses the same indigo as the hero gradient background,
+   making buttons nearly invisible against the hero. This override
+   flips to a white button with indigo text for contrast. */
+.hero-section .btn-primary,
+.hero-buttons .btn-primary {
+  background: #ffffff;
+  color: #4f46e5;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+.hero-section .btn-primary:hover,
+.hero-buttons .btn-primary:hover {
+  background: #f0f0ff;
+  color: #4338ca;
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
+}
+
 
 .btn-secondary {
   background: #ffffff;
@@ -122,12 +163,14 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
+
 .btn-secondary:hover {
   background: #f8f9fa;
   color: #4338ca;
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
+
 
 .btn-secondary-outline {
   background: transparent;
@@ -140,15 +183,18 @@
   text-decoration: none;
 }
 
+
 .btn-secondary-outline:hover {
   background: var(--color-primary);
   color: var(--text-inverse);
 }
 
+
 .hero-stats {
   display: flex;
   gap: var(--space-8);
 }
+
 
 .stat-item {
   display: flex;
@@ -156,16 +202,19 @@
   gap: var(--space-1);
 }
 
+
 .stat-item strong {
   font-size: var(--text-2xl);
   font-weight: var(--font-bold);
   color: #ffffff;
 }
 
+
 .stat-item span {
   font-size: var(--text-sm);
   color: rgba(255, 255, 255, 0.9);
 }
+
 
 .hero-image img {
   width: 100%;
@@ -173,17 +222,22 @@
   max-width: 600px;
   filter: none;
   animation: float 6s ease-in-out infinite;
-  image-rendering: -webkit-optimize-contrast;
+  /* FIX 3: -webkit-optimize-contrast is deprecated and non-standard.
+     Replaced with the W3C standard value. */
+  image-rendering: crisp-edges;
 }
+
 
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-20px); }
 }
 
+
 /* ═══════════════════════════════════════════════════════════════
    FEATURES SECTION
    ═══════════════════════════════════════════════════════════════ */
+
 
 .features-section {
   padding: var(--space-16) 0;
@@ -192,10 +246,12 @@
   margin: 0;
 }
 
+
 .section-header {
   text-align: center;
   margin-bottom: var(--space-12);
 }
+
 
 .section-header h2 {
   font-size: var(--text-4xl);
@@ -204,16 +260,19 @@
   margin-bottom: var(--space-3);
 }
 
+
 .section-header p {
   font-size: var(--text-lg);
   color: var(--text-secondary);
 }
+
 
 .features-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: var(--space-6);
 }
+
 
 .feature-card {
   background: var(--bg-primary);
@@ -226,11 +285,13 @@
   position: relative;
 }
 
+
 .feature-card:hover {
   transform: translateY(-8px);
   box-shadow: var(--shadow-xl);
   border-color: var(--color-primary);
 }
+
 
 .feature-icon {
   width: 80px;
@@ -243,6 +304,7 @@
   border-radius: var(--radius-md);
 }
 
+
 .feature-card h3 {
   font-size: var(--text-xl);
   font-weight: var(--font-semibold);
@@ -250,15 +312,18 @@
   margin-bottom: var(--space-3);
 }
 
+
 .feature-card p {
   font-size: var(--text-sm);
   color: var(--text-secondary);
   line-height: 1.6;
 }
 
+
 /* ═══════════════════════════════════════════════════════════════
    HOW IT WORKS SECTION
    ═══════════════════════════════════════════════════════════════ */
+
 
 .how-it-works-section {
   padding: var(--space-16) 0;
@@ -266,6 +331,7 @@
   position: relative;
   margin: 0;
 }
+
 
 .how-it-works-section::before {
   content: '';
@@ -278,11 +344,13 @@
   background: linear-gradient(90deg, transparent 0%, var(--border-color) 50%, transparent 100%);
 }
 
+
 .steps-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: var(--space-8);
 }
+
 
 .step-card {
   text-align: center;
@@ -293,10 +361,12 @@
   transition: all var(--transition-base);
 }
 
+
 .step-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
 }
+
 
 .step-number {
   width: 60px;
@@ -313,6 +383,7 @@
   box-shadow: var(--shadow-lg);
 }
 
+
 .step-illustration {
   margin-bottom: var(--space-4);
   height: 200px;
@@ -321,12 +392,14 @@
   justify-content: center;
 }
 
+
 .step-illustration img {
   width: 200px;
   height: auto;
   max-height: 200px;
   object-fit: contain;
 }
+
 
 .step-card h3 {
   font-size: var(--text-xl);
@@ -335,15 +408,18 @@
   margin-bottom: var(--space-3);
 }
 
+
 .step-card p {
   font-size: var(--text-sm);
   color: var(--text-secondary);
   line-height: 1.6;
 }
 
+
 /* ═══════════════════════════════════════════════════════════════
    CTA SECTION
    ═══════════════════════════════════════════════════════════════ */
+
 
 .cta-section {
   padding: var(--space-20) 0;
@@ -353,6 +429,7 @@
   border-top: 1px solid var(--border-color);
 }
 
+
 .cta-content {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -360,16 +437,20 @@
   align-items: center;
 }
 
+
 .cta-text h2 {
   font-size: var(--text-5xl);
   font-weight: var(--font-bold);
-  color: var(--text-primary);
   margin-bottom: var(--space-4);
+  /* FIX 2 (same as .hero-title .highlight): Add color fallback
+     so text is never invisible if background-clip fails. */
+  color: #4f46e5;
   background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
 
 .cta-text p {
   font-size: var(--text-xl);
@@ -377,10 +458,12 @@
   margin-bottom: var(--space-8);
 }
 
+
 .cta-buttons {
   display: flex;
   gap: var(--space-4);
 }
+
 
 .cta-image img {
   width: 100%;
@@ -388,9 +471,11 @@
   filter: drop-shadow(0 10px 30px rgba(0, 0, 0, 0.1));
 }
 
+
 /* ═══════════════════════════════════════════════════════════════
-   TESTIMONIALS SECTION - UPDATED FOR SMOOTH TRANSITION
+   TESTIMONIALS SECTION
    ═══════════════════════════════════════════════════════════════ */
+
 
 .testimonials-section {
   padding: var(--space-20) 0;
@@ -398,6 +483,7 @@
   position: relative;
   margin: var(--space-8) 0;
 }
+
 
 .testimonials-section::before {
   content: '';
@@ -411,12 +497,14 @@
   border-radius: 2px;
 }
 
+
 .testimonials-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: var(--space-6);
   margin-top: var(--space-8);
 }
+
 
 .testimonial-card {
   background: #fafbfc;
@@ -427,12 +515,14 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
+
 .testimonial-card:hover {
   transform: translateY(-4px);
   box-shadow: var(--shadow-lg);
   border-color: var(--color-primary);
   background: #ffffff;
 }
+
 
 .testimonial-header {
   display: flex;
@@ -441,12 +531,14 @@
   margin-bottom: var(--space-4);
 }
 
+
 .testimonial-avatar {
   width: 60px;
   height: 60px;
   border-radius: var(--radius-full);
   border: 3px solid var(--color-primary);
 }
+
 
 .testimonial-info h4 {
   font-size: var(--text-lg);
@@ -455,11 +547,13 @@
   margin: 0 0 var(--space-1) 0;
 }
 
+
 .testimonial-role {
   font-size: var(--text-sm);
   color: var(--text-secondary);
   margin: 0;
 }
+
 
 .testimonial-rating {
   margin-bottom: var(--space-3);
@@ -467,9 +561,11 @@
   gap: var(--space-1);
 }
 
+
 .star-filled {
   font-size: 18px;
 }
+
 
 .testimonial-text {
   font-size: var(--text-base);
@@ -478,19 +574,28 @@
   font-style: italic;
 }
 
+
 /* ═══════════════════════════════════════════════════════════════
-   FAQ SECTION - UPDATED FOR SMOOTH TRANSITION
+   FAQ SECTION
    ═══════════════════════════════════════════════════════════════ */
 
+
 .faq-section {
-  padding: var(--space-20) 0;
-  padding-bottom: 50px;
+  /* FIX 1 (same as .hero-section): Removed padding shorthand conflict.
+     Was:  padding: var(--space-20) 0;
+           padding-bottom: 50px;   ← these were overriding the shorthand
+           padding-top: 50px;
+     Now: single consolidated declaration. */
   padding-top: 50px;
+  padding-bottom: 50px;
+  padding-left: 0;
+  padding-right: 0;
   background: #f8f9fa;
   position: relative;
   margin: var(--space-8) 0 0 0;
   border-radius: 40px 40px 0 0;
 }
+
 
 .faq-section::before {
   content: '';
@@ -504,12 +609,17 @@
   border-radius: 2px;
 }
 
+
 .faq-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  /* FIX 6: Changed minmax(400px, 1fr) → minmax(300px, 1fr).
+     400px caused grid overflow on screens between 400-768px before
+     the mobile media query breakpoint, breaking the layout. */
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: var(--space-6);
   margin-top: var(--space-8);
 }
+
 
 .faq-item {
   background: #ffffff;
@@ -519,11 +629,13 @@
   transition: all var(--transition-base);
 }
 
+
 .faq-item:hover {
   border-color: var(--color-primary);
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);
 }
+
 
 .faq-question {
   font-size: var(--text-lg);
@@ -535,11 +647,13 @@
   gap: var(--space-2);
 }
 
+
 .faq-question::before {
   content: '❓';
   font-size: 20px;
   flex-shrink: 0;
 }
+
 
 .faq-answer {
   font-size: var(--text-sm);
@@ -548,9 +662,11 @@
   margin: 0;
 }
 
+
 /* ═══════════════════════════════════════════════════════════════
-   FOOTER - UPDATED FOR SMOOTH TRANSITION
+   FOOTER
    ═══════════════════════════════════════════════════════════════ */
+
 
 .footer {
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
@@ -559,6 +675,7 @@
   margin-top: 0;
   position: relative;
 }
+
 
 .footer::before {
   content: '';
@@ -575,6 +692,7 @@
   );
 }
 
+
 .footer-content {
   display: grid;
   grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
@@ -582,22 +700,27 @@
   margin-bottom: var(--space-12);
 }
 
+
 .footer-column {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
 }
 
+
 .footer-brand {
   font-size: var(--text-2xl);
   font-weight: var(--font-bold);
-  color: #ffffff;
   margin: 0 0 var(--space-2) 0;
+  /* FIX 2: Added color fallback for gradient text.
+     Without it, text becomes invisible if background-clip fails. */
+  color: #a5b4fc;
   background: linear-gradient(120deg, #4f46e5 0%, #6366f1 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
 
 .footer-description {
   font-size: var(--text-sm);
@@ -606,11 +729,13 @@
   margin: 0;
 }
 
+
 .social-links {
   display: flex;
   gap: var(--space-3);
   margin-top: var(--space-2);
 }
+
 
 .social-link {
   width: 40px;
@@ -623,15 +748,18 @@
   transition: all var(--transition-base);
 }
 
+
 .social-link:hover {
   background: var(--color-primary);
   transform: translateY(-2px);
 }
 
+
 .social-link img {
   width: 24px;
   height: 24px;
 }
+
 
 .footer-title {
   font-size: var(--text-base);
@@ -639,6 +767,7 @@
   color: #ffffff;
   margin: 0 0 var(--space-3) 0;
 }
+
 
 .footer-links {
   list-style: none;
@@ -649,6 +778,7 @@
   gap: var(--space-2);
 }
 
+
 .footer-links a {
   color: #cbd5e1;
   text-decoration: none;
@@ -657,10 +787,12 @@
   display: inline-block;
 }
 
+
 .footer-links a:hover {
   color: #ffffff;
   padding-left: var(--space-2);
 }
+
 
 .footer-bottom {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
@@ -671,19 +803,23 @@
   gap: var(--space-2);
 }
 
+
 .footer-bottom p {
   font-size: var(--text-sm);
   color: #94a3b8;
   margin: 0;
 }
 
+
 /* ═══════════════════════════════════════════════════════════════
    MVP BADGES & STATUS INDICATORS
    ═══════════════════════════════════════════════════════════════ */
 
+
 .beta-badge {
   margin-bottom: var(--space-4);
 }
+
 
 .badge-pill {
   display: inline-flex;
@@ -700,6 +836,7 @@
   animation: pulse 2s ease-in-out infinite;
 }
 
+
 @keyframes pulse {
   0%, 100% {
     transform: scale(1);
@@ -710,6 +847,7 @@
     box-shadow: 0 0 0 8px rgba(255, 255, 255, 0);
   }
 }
+
 
 .status-badge {
   display: inline-block;
@@ -724,9 +862,11 @@
   letter-spacing: 0.5px;
 }
 
+
 .mvp-badge {
   margin-top: var(--space-3);
 }
+
 
 .badge-footer {
   display: inline-block;
@@ -741,9 +881,11 @@
   letter-spacing: 0.5px;
 }
 
+
 /* ═══════════════════════════════════════════════════════════════
    RESPONSIVE DESIGN
    ═══════════════════════════════════════════════════════════════ */
+
 
 @media (max-width: 768px) {
   .hero-content,
@@ -790,6 +932,7 @@
     padding: var(--space-12) 0;
   }
 }
+
 
 @media (max-width: 480px) {
   .hero-title {

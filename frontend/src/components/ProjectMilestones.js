@@ -3,6 +3,9 @@ import api from '../api';
 import '../styles/ProjectMilestones.css';
 import MilestonePayment from './MilestonePayment';
 
+const ACCEPTED_UPLOAD_EXTENSIONS =
+  '.pdf,.doc,.docx,.rtf,.txt,.md,.csv,.xls,.xlsx,.ppt,.pptx,.json,.xml,.yaml,.yml,.js,.jsx,.ts,.tsx,.py,.java,.c,.cpp,.h,.hpp,.cs,.go,.php,.rb,.swift,.kt,.kts,.scala,.rs,.sql,.sh,.ps1,.bat,.html,.css,.scss,.less,.png,.jpg,.jpeg,.webp,.zip,.7z,.rar,.tar,.gz';
+
 /* ─── Submission Modal ──────────────────────────────────────────────────── */
 const SubmitWorkModal = ({ milestone, onClose, onSuccess }) => {
   const [files, setFiles] = useState([]);
@@ -75,7 +78,7 @@ const SubmitWorkModal = ({ milestone, onClose, onSuccess }) => {
                 <>
                   <span className="file-drop-icon">📁</span>
                   <span>Click to choose files</span>
-                  <span className="file-drop-hint">PDF, PNG, JPG, ZIP · Max 10 MB each</span>
+                  <span className="file-drop-hint">PDF, DOCX, XLSX, PPTX, code/config files, images, archives · Max 25 MB each</span>
                 </>
               ) : (
                 <ul className="file-list">
@@ -90,10 +93,29 @@ const SubmitWorkModal = ({ milestone, onClose, onSuccess }) => {
               type="file"
               name="milestoneFile"
               multiple
-              accept=".pdf,.png,.jpg,.jpeg,.zip"
+              accept={ACCEPTED_UPLOAD_EXTENSIONS}
               style={{ display: 'none' }}
               onChange={handleFileChange}
             />
+
+            <details style={{ marginTop: '0.5rem' }}>
+              <summary style={{ cursor: 'pointer', fontSize: '0.85rem', color: '#475569' }}>
+                Supported formats
+              </summary>
+              <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.35rem', lineHeight: 1.5 }}>
+                Documents: PDF, DOC, DOCX, RTF, TXT, MD
+                <br />
+                Sheets and data: CSV, XLS, XLSX
+                <br />
+                Presentations: PPT, PPTX
+                <br />
+                Code and config: JS, TS, PY, JAVA, C/C++, C#, GO, PHP, SQL, JSON, XML, YAML and similar text-based files
+                <br />
+                Media and archives: PNG, JPG, JPEG, WEBP, ZIP, 7Z, RAR, TAR, GZ
+                <br />
+                Limits: up to 10 files, 25 MB each
+              </div>
+            </details>
           </div>
 
           <div className="submit-modal-field">
@@ -540,8 +562,8 @@ const ProjectMilestones = ({ projectId, userRole }) => {
               {/* ── FREELANCER CONTROLS ── */}
               {userRole === 'freelancer' && (
                 <div className="milestone-controls-premium">
-                  {/* Bug 3 Fix: Show slider for both 'funded' and 'in-progress' statuses */}
-                  {(milestone.status === 'in-progress' || milestone.status === 'funded') && (
+                  {/* Show slider only after work has started */}
+                  {(milestone.status === 'in-progress' || milestone.status === 'revision-requested') && (
                     <div className="progress-update-premium">
                       <label>Update Progress</label>
                       <div className="slider-group">

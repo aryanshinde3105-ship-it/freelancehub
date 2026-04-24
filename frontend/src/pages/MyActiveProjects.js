@@ -6,6 +6,9 @@ import RatingForm from '../components/RatingForm';
 import ProjectMilestones from '../components/ProjectMilestones';
 import '../styles/milestonesModal.css';
 
+const ACCEPTED_UPLOAD_EXTENSIONS =
+  '.pdf,.doc,.docx,.rtf,.txt,.md,.csv,.xls,.xlsx,.ppt,.pptx,.json,.xml,.yaml,.yml,.js,.jsx,.ts,.tsx,.py,.java,.c,.cpp,.h,.hpp,.cs,.go,.php,.rb,.swift,.kt,.kts,.scala,.rs,.sql,.sh,.ps1,.bat,.html,.css,.scss,.less,.png,.jpg,.jpeg,.webp,.zip,.7z,.rar,.tar,.gz';
+
 function MyActiveProjects() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -290,8 +293,20 @@ function MyActiveProjects() {
                     <>
                       <input
                         type="file"
+                        accept={ACCEPTED_UPLOAD_EXTENSIONS}
                         onChange={(e) => handleFileChange(project._id, e.target.files[0])}
                       />
+                      <details style={{ marginTop: '0.35rem', marginBottom: '0.35rem' }}>
+                        <summary style={{ cursor: 'pointer', fontSize: '0.85rem', color: '#475569' }}>
+                          Supported formats
+                        </summary>
+                        <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '0.35rem', lineHeight: 1.5 }}>
+                          PDF, DOC, DOCX, RTF, TXT, MD, CSV, XLS, XLSX, PPT, PPTX,
+                          common code/config files, PNG/JPG/WEBP, ZIP/7Z/RAR/TAR/GZ.
+                          <br />
+                          Max file size: 25 MB per file.
+                        </div>
+                      </details>
                       <button
                         className="btn btn-primary"
                         onClick={() => uploadFile(project._id)}

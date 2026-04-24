@@ -43,8 +43,9 @@ router.get('/:projectId', authMiddleware, async (req, res) => {
 ======================= */
 router.post('/:projectId', authMiddleware, async (req, res) => {
   try {
-    const { text } = req.body;
-    if (!text) return res.status(400).json({ message: 'Message required' });
+    const { text, clientMessageId } = req.body;
+    const sanitizedText = typeof text === 'string' ? text.trim() : '';
+    if (!sanitizedText) return res.status(400).json({ message: 'Message required' });
 
     const project = await Project.findById(req.params.projectId);
     if (!project) return res.status(404).json({ message: 'Project not found' });
@@ -58,11 +59,26 @@ router.post('/:projectId', authMiddleware, async (req, res) => {
       return res.status(403).json({ message: 'Not authorized' });
     }
 
-    const message = await Message.create({
-      projectId: project._id,
-      senderId: req.user.id,
-      text,
-    });
+    let message = null;
+
+    if (clientMessageId) {
+      message = await Message.findOne({
+        projectId: project._id,
+        senderId: req.user.id,
+        clientMessageId,
+      }).populate('senderId', 'name role');
+    }
+
+    if (!message) {
+      const created = await Message.create({
+        projectId: project._id,
+        senderId: req.user.id,
+        text: sanitizedText,
+        ...(clientMessageId ? { clientMessageId } : {}),
+      });
+
+      message = await Message.findById(created._id).populate('senderId', 'name role');
+    }
 
     // ✅ SEND NOTIFICATION TO RECIPIENT
     const sender = await User.findById(req.user.id);
@@ -84,6 +100,22 @@ router.post('/:projectId', authMiddleware, async (req, res) => {
 
     res.status(201).json(message);
   } catch (err) {
+    if (err && err.code === 11000) {
+      try {
+        const existingMessage = await Message.findOne({
+          projectId: req.params.projectId,
+          senderId: req.user.id,
+          clientMessageId: req.body.clientMessageId,
+        }).populate('senderId', 'name role');
+
+        if (existingMessage) {
+          return res.status(200).json(existingMessage);
+        }
+      } catch (findErr) {
+        console.error(findErr);
+      }
+    }
+
     console.error(err);
     res.status(500).json({ message: 'Server error' });
   }

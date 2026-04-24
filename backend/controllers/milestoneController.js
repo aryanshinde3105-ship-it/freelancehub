@@ -170,8 +170,7 @@ exports.deleteMilestone = async (req, res) => {
 
 /* =====================
    UPDATE MILESTONE PROGRESS
-   Bug 3 Fix: Allow slider to promote status from funded → in-progress
-   so freelancers don't have to click 'Start Work' before dragging the slider.
+  Progress updates are allowed only after work has started.
 ===================== */
 exports.updateProgress = async (req, res) => {
   try {
@@ -193,7 +192,7 @@ exports.updateProgress = async (req, res) => {
     }
 
     // Only allow progress updates on active milestones
-    const activeStatuses = ['funded', 'in-progress', 'revision-requested'];
+    const activeStatuses = ['in-progress', 'revision-requested'];
     if (!activeStatuses.includes(milestone.status)) {
       return res.status(400).json({
         message: `Cannot update progress on a milestone with status: ${milestone.status}`,
@@ -201,16 +200,6 @@ exports.updateProgress = async (req, res) => {
     }
     
     milestone.progress = progress;
-    
-    // Bug 3 Fix: Promote status from funded → in-progress when progress > 0
-    // This allows the slider to implicitly start work without requiring the button
-    if (progress > 0 && milestone.status === 'funded') {
-      milestone.status = 'in-progress';
-      milestone.startedAt = new Date();
-    }
-
-    // If freelancer drags back to 0 while in-progress, keep status as in-progress
-    // (don't regress back to funded)
     
     await milestone.save();
     

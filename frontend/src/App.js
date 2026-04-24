@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   BrowserRouter as Router,
   Routes,
@@ -26,6 +26,7 @@ import EditProfile from './pages/EditProfile';
 import NotificationBell from './components/NotificationBell';
 import Notifications from './pages/Notifications';
 import AdminDashboard from './pages/AdminDashboard';
+import { connectSocket, disconnectSocket } from './socket';
 
 
 import { getToken, getCurrentUser, logout } from './auth';
@@ -45,7 +46,17 @@ function Layout() {
   const token = getToken();
   const user = getCurrentUser();
 
+  useEffect(() => {
+    if (token) {
+      connectSocket(token);
+      return;
+    }
+
+    disconnectSocket();
+  }, [token]);
+
   const handleLogout = () => {
+    disconnectSocket();
     logout();
     navigate('/login');
   };
